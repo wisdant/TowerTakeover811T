@@ -29,7 +29,7 @@
 		pros::delay(20);
 	}
 }*/
-const double DRIVE_SPEED = 0.50; // Changes the maximum drive speed (range between 0 and 1)
+const double DRIVE_SPEED = 1.00; // Changes the maximum drive speed (range between 0 and 1)
 const int ARCADE = true; // Controls whether the drive is tank style (false) or arcade style (true)
 const int DRIVE_THRESHOLD  = 12; // Controls the minimum power that can be assigned to drive motors
 
@@ -52,11 +52,11 @@ pros::Controller master(pros::E_CONTROLLER_MASTER);
 pros::Motor left_drive (LEFT_FRONT_PORT, false);
 pros::Motor left_rear_drive (LEFT_REAR_PORT, false);
 
-pros::Motor right_drive (RIGHT_FRONT_PORT, false);
-pros::Motor right_rear_drive (RIGHT_REAR_PORT, false);
+pros::Motor right_drive (RIGHT_FRONT_PORT, true);
+pros::Motor right_rear_drive (RIGHT_REAR_PORT, true);
 
 pros::Motor left_intake (LEFT_INTAKE_PORT, false);
-pros::Motor right_intake (RIGHT_INTAKE_PORT, false);
+pros::Motor right_intake (RIGHT_INTAKE_PORT, true);
 
 pros::Motor lift (LIFT_PORT, false);
 pros::Motor hinge (HINGE_PORT, false);
@@ -134,7 +134,7 @@ void opcontrol() {
 	while (true) {
 		static int counter = 0;
 
-		pros::lcd::print(6, "counter=%d", counter++);
+		pros::lcd::print(6, "9/23 7:50PM counter=%d", counter++);
 
 		/*
 		 * Drivetrain code
@@ -165,10 +165,10 @@ void opcontrol() {
 
 
 		if (ARCADE) { // if arcade mode
-			//right_power = left_y - right_x;
-			//left_power = left_y + right_x;
-			right_power = left_y * (-1);
-			left_power = left_y;
+			right_power = left_y - right_x;
+			left_power = left_y + right_x;
+			//right_power = left_y;
+			//left_power = left_y;
 		}
 		else { // if tank mode
 			right_power = right_y;
@@ -249,7 +249,7 @@ void opcontrol() {
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_A) == 1) {
 				pros::delay(10);
 			}
-			move_lift(-25); // Assign a little power and allow the motor to hold it's position.
+			move_lift(0); // Assign a little power and allow the motor to hold it's position.
 		}
 
 		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_B) == 1) {
@@ -257,8 +257,18 @@ void opcontrol() {
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_B) == 1) {
 				pros::delay(10);
 			}
+			move_lift(0); // Assign a little power and allow the motor to hold it's position.
 		}
 
+		//A special button Y to do a little bit reverse spin of the intake, basically L2
+		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_Y) == 1) {
+			pros::lcd::print(3, "Y pressed");
+			move_intake(-40);
+			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_Y) == 1) {
+				pros::delay(10);
+			}
+			move_intake(0);
+		}
 
 		// IMPORTANT: DO NOT REMOVE
 		// This delay allows all other robot related functionality to be run between iterations of this while loop.
