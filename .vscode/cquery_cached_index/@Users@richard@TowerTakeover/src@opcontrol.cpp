@@ -1,48 +1,5 @@
 #include "main.h"
 
-/**
- * Runs the operator control code. This function will be started in its own task
- * with the default priority and stack size whenever the robot is enabled via
- * the Field Management System or the VEX Competition Switch in the operator
- * control mode.
- *
- * If no competition control is connected, this function will run immediately
- * following initialize().
- *
- * If the robot is disabled or communications is lost, the
- * operator control task will be stopped. Re-enabling the robot will restart the
- * task, not resume it from where it left off.
- */
-/*void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor left_mtr(1);
-	pros::Motor right_mtr(2);
-	while (true) {
-		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
-		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
-		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
-		int left = master.get_analog(ANALOG_LEFT_Y);
-		int right = master.get_analog(ANALOG_RIGHT_Y);
-
-		left_mtr = left;
-		right_mtr = right;
-		pros::delay(20);
-	}
-}*/
-const double DRIVE_SPEED = 1.00; // Changes the maximum drive speed (range between 0 and 1)
-const int ARCADE = true; // Controls whether the drive is tank style (false) or arcade style (true)
-const int DRIVE_THRESHOLD  = 12; // Controls the minimum power that can be assigned to drive motors
-
-const int RIGHT_FRONT_PORT = 1;
-const int RIGHT_REAR_PORT = 2;
-const int RIGHT_INTAKE_PORT = 3;
-
-const int HINGE_PORT = 4;
-const int LIFT_PORT = 5;
-
-const int LEFT_FRONT_PORT = 10;
-const int LEFT_REAR_PORT = 9;
-const int LEFT_INTAKE_PORT = 8;
 
 // Define the main controller of the robot.
 pros::Controller master(pros::E_CONTROLLER_MASTER);
@@ -58,8 +15,8 @@ pros::Motor right_rear_drive (RIGHT_REAR_PORT, true);
 pros::Motor left_intake (LEFT_INTAKE_PORT, false);
 pros::Motor right_intake (RIGHT_INTAKE_PORT, true);
 
-pros::Motor lift (LIFT_PORT, false);
-pros::Motor hinge (HINGE_PORT, false);
+pros::Motor lift (LIFT_PORT, true);
+pros::Motor hinge (HINGE_PORT, true);
 
 /**
  * Assign specified powers for the right and left sides of the drivetrain to the left and right motors, respectively.
@@ -134,7 +91,7 @@ void opcontrol() {
 	while (true) {
 		static int counter = 0;
 
-		pros::lcd::print(6, "9/23 7:50PM counter=%d", counter++);
+		pros::lcd::print(6, "10/6 7:21PM counter=%d", counter++);
 
 		/*
 		 * Drivetrain code
@@ -204,7 +161,7 @@ void opcontrol() {
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1) == 1) { // Wait for the button to be released
 				pros::delay(10);
 			}
-			move_intake(0);
+			//move_intake(0);
 		}
 		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2) == 1) {
 			pros::lcd::print(3, "L2 pressed");
@@ -212,48 +169,48 @@ void opcontrol() {
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2) == 1) {
 				pros::delay(10);
 			}
-			move_intake(0);
+			//move_intake(0);
 		}
 
 		/*
 		 * hinge code
 		 * This code controls the hinge that is responsible for pushing the tray
 		 */
-		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) == 1) {
-			pros::lcd::print(4, "R1 pressed");
-			move_hinge(40); // Move the lift forward
-			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) == 1) { // Wait for the button to be released
-				pros::delay(10);
-			}
-			// Need to add logic to make sure the hinge does not push over certain limit to tip over the entire pile of blocks
-			move_hinge(0);
-		}
-		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) == 1) {
-			pros::lcd::print(4, "R1 pressed");
-			move_hinge(-40); // Move the hinge backward
-			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) == 1) {
-				pros::delay(10);
-			}
-			move_hinge(0);
-			// Need to add logic to make sure the hinge stays at the right position
-			// TODO: Add logic to not to do anything when the robot is close to the target zone
-			// to avoid mistake to tip over the entire pile of blocks
-		}
+		 if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) == 1) {
+ 			pros::lcd::print(4, "R1 pressed");
+			move_intake(0); // Stop intake roller
+ 			move_hinge(40); // Move the lift forward
+ 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) == 1) { // Wait for the button to be released
+ 				pros::delay(10);
+ 			}
+ 			// TODO: Add sensor so that the hinge does not go above certain threashold
+ 			move_hinge(0);
+ 		}
+
+		 if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) == 1) {
+ 			pros::lcd::print(4, "R2 pressed");
+ 			move_intake(0);		// Stop intake roller
+ 			move_hinge(-100); // Move the hinge backward
+ 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) == 1) {
+ 				pros::delay(10);
+ 			}
+ 			move_hinge(0);
+ 		}
 
 		/*
 		 * Lift code
 		 * This code controls the lift
 		 */
 		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_A) == 1) {
-			move_lift(-127); // move up the lift
+			move_lift(127); // move up the lift
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_A) == 1) {
 				pros::delay(10);
 			}
-			move_lift(0); // Assign a little power and allow the motor to hold it's position.
+			move_lift(20); // Assign a little power and allow the motor to hold it's position.
 		}
 
 		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_B) == 1) {
-			move_lift(50); // Move down the lift
+			move_lift(-50); // Move down the lift
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_B) == 1) {
 				pros::delay(10);
 			}
@@ -275,3 +232,33 @@ void opcontrol() {
 		pros::delay(10);
 	}
 }
+
+/**
+ * Runs the operator control code. This function will be started in its own task
+ * with the default priority and stack size whenever the robot is enabled via
+ * the Field Management System or the VEX Competition Switch in the operator
+ * control mode.
+ *
+ * If no competition control is connected, this function will run immediately
+ * following initialize().
+ *
+ * If the robot is disabled or communications is lost, the
+ * operator control task will be stopped. Re-enabling the robot will restart the
+ * task, not resume it from where it left off.
+ */
+/*void opcontrol() {
+	pros::Controller master(pros::E_CONTROLLER_MASTER);
+	pros::Motor left_mtr(1);
+	pros::Motor right_mtr(2);
+	while (true) {
+		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
+		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
+		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
+		int left = master.get_analog(ANALOG_LEFT_Y);
+		int right = master.get_analog(ANALOG_RIGHT_Y);
+
+		left_mtr = left;
+		right_mtr = right;
+		pros::delay(20);
+	}
+}*/

@@ -62,6 +62,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+const double DRIVE_SPEED = 1.00; // Changes the maximum drive speed (range between 0 and 1)
+const int ARCADE = true; // Controls whether the drive is tank style (false) or arcade style (true)
+const int DRIVE_THRESHOLD  = 12; // Controls the minimum power that can be assigned to drive motors
+
+const int RIGHT_FRONT_PORT = 1;
+const int RIGHT_REAR_PORT = 2;
+const int RIGHT_INTAKE_PORT = 6;
+
+const int HINGE_PORT = 4;
+const int LIFT_PORT = 5;
+
+const int LEFT_FRONT_PORT = 10;
+const int LEFT_REAR_PORT = 9;
+const int LEFT_INTAKE_PORT = 8;
+
 void autonomous(void);
 void initialize(void);
 void disabled(void);
