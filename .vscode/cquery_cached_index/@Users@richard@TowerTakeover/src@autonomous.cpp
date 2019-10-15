@@ -64,29 +64,50 @@ void a_move_hinge(int power) {
   a_hinge.move(power);
 }
 
+/// ---------------------------------------------------------------------------
+
 void small(bool isRed) {
+
   // start in-take
   a_move_intake(127);
 
-  // drive forward to pickup the preload and 4 other blocks straight ahead
   a_move_drive(127,127);
-  delay(500);
+  delay(375);
 
-  a_move_drive(30, 30);
-  delay(3000);
+  a_move_drive(10, 10);
+  delay(800);
 
-  a_move_drive(0, 0);
+  a_move_drive(127,127);
+  delay(150);
+
+  a_move_drive(10, 10);
+  delay(800);
+
+  a_move_drive(127,127);
+  delay(150);
+
+  a_move_drive(20, 20);
+  delay(1200);
+
+  a_move_drive(127,127);
   delay(200);
+
+  a_move_drive(20, 20);
+  delay(700);
 
   // Just hold the blocks
-  a_move_intake(20);
+  a_move_intake(30);
 
   // drive back to the edge
-  a_move_drive(-127,-127);
-  delay(1000);
+  /* a_move_drive(-127,-127);
+  delay(1100);
+  */
 
-  a_move_drive(0, 0);
-  delay(200);
+  a_move_drive(-127,-127);
+  delay(800);
+  a_move_drive(-50,-50);
+  delay(900);
+
 
   if (isRed )
     //Make a right turn
@@ -95,28 +116,46 @@ void small(bool isRed) {
     //Make a left turn
     a_move_drive(50, -50);
 
-  delay(1200);
+  //delay(1250);
+  delay(1000); ///changed
 
   // Drive to the goal zone
-  a_move_drive(50, 50);
-  delay(1200);
+  a_move_drive(35, 35);
+  delay(1000);
+
+  if (isRed )
+    //Make a right turn
+    a_move_drive(-50, 50); /// a_move_drive (-40, 40);
+  else
+    //Make a left turn
+    a_move_drive(50, -50); /// a_move_drive (40, -40);
+
+  //delay(1250);
+  delay(150);
 
   // Push the hinge
   a_move_drive(0, 0);
   a_move_intake(0);
-  a_move_hinge(127);
-  delay(1000);
-  a_move_hinge(40);
-  delay(600);
-
-  // Drive away
+  a_move_hinge(50); /// a_move_hinge(30);
+  delay(2400); /// delay(3000);
+  a_move_hinge(0);
+  a_move_drive(40,40);
+  delay(200);
+  a_move_drive(0, 0);
+  a_move_intake(-127);
+  delay(200);
+  a_move_intake(0);
   a_move_drive(-50,-50);
-  delay(500);
+  delay(700);
   a_move_drive(0, 0);
 
   a_move_hinge(-127);
   delay(400);
+  a_move_hinge(0);
+
 }
+
+/// ----------------------------------------------------------------------------
 
 void big(bool isRed) {
   // Sample Code
@@ -136,6 +175,8 @@ void big(bool isRed) {
   // pick up first block
   a_move_drive(127, 127);
   delay(400);
+
+
   if (isRed) {
     // turn left at the location
     a_move_drive(50, -50);
@@ -162,7 +203,222 @@ void big(bool isRed) {
     a_move_drive(-50, 50);
   }
 
+  delay(550);
+
+  // drive to the goal zone
+  a_move_drive(35, 35);
+  delay(1000);
+
+  a_move_intake(0);
+  a_move_drive(0, 0);
+
+  a_move_hinge(100);
   delay(600);
+  a_move_hinge(40);
+  delay(1200);
+  a_move_hinge(20);
+  delay(800);
+  a_move_intake(-20);
+  delay(100);
+
+  a_move_hinge(0);
+  a_move_intake(0);
+
+  a_move_drive(-50, -50);
+  delay(500);
+  a_move_drive(0, 0);
+
+  a_move_hinge(-127);
+  delay(400);
+  a_move_hinge(0);
+
+
+}
+
+void big2(bool isRed) {
+  // Sample Code
+  // Move forward
+  // a_move_drive(30,30);
+
+  // Move backward
+  // a_move_drive(-30, -30);
+
+  // Left turn
+  // a_move_drive(30, 0);
+
+  // right turn
+  // a_move_drive(0, 30);
+  a_move_intake(127);
+
+  // pick up first block
+  a_move_drive(50, 50);
+  delay(1000);
+
+
+  if (isRed) {
+    // turn left at the location
+    a_move_drive(50, -50);
+  } else {
+    // turn right at the location
+    a_move_drive(-50, 50);
+  }
+  delay(650);
+
+  // drive forward to pick up the second block
+  a_move_drive(50, 50);
+  delay(2000); ///changed from 2000 to 2500
+
+  a_move_drive(0,0);
+  delay(1000);
+
+  // hold the block
+  a_move_intake(20);
+  if (isRed) {
+    // turn left for 45 degrees
+    a_move_drive(50, -50);
+  } else {
+    // turn right for 45 degrees
+    a_move_drive(-50, 50);
+  }
+
+  delay(700);
+
+  // drive to the goal zone
+  a_move_drive(35, 35);
+  delay(1100);
+
+  a_move_intake(0);
+  a_move_drive(0, 0);
+
+  a_move_hinge(100);
+  delay(600);
+  a_move_hinge(40);
+  delay(1200);
+  a_move_hinge(20);
+  delay(800);
+  a_move_intake(-20);
+  delay(100);
+
+  a_move_hinge(0);
+  a_move_intake(0);
+
+  a_move_drive(-50, -50);
+  delay(700);
+  a_move_drive(0, 0);
+
+  a_move_hinge(-127);
+  delay(400);
+  a_move_hinge(0);
+
+
+}
+
+/*
+void big2 (bool isRed) {
+  /// add: a_move_drive(100, 100)
+  /// add: delay(200);
+  /// add: a_move_drive(0, 0);
+  if (isRed) {
+    a_move_drive(-50, 50);
+  }
+  else {
+    a_move_drive(50, -50);
+  }
+  delay(1500);
+  a_move_drive(0, 0);
+  a_move_drive(-50, -50);
+  delay(2000);
+  a_move_drive(0, 0);
+  a_move_drive(50, 50);
+  delay(2000);
+  a_move_drive(0,0);
+  delay(1000);
+}
+*/
+/// ----------------------------------------------------------------------------
+
+void unfold() {
+  // Move hinge forward to make it loose
+  a_hinge.move(127);
+  delay(600);
+
+  a_hinge.move(-127);
+  delay(600);
+
+  a_hinge.move(0);
+
+  //delay(500);
+
+  // Position in the intake.
+  a_lift.move(127);
+  delay(600);
+
+  a_lift.move(-127);
+  delay(600);
+
+  a_lift.move(0);
+
+  a_move_drive(-80, -80);
+  delay(350);
+
+  a_move_drive(0, 0);
+  delay(100);
+}
+
+void red_small()
+{
+  small(true);
+}
+
+void red_big() {
+  big2(true);
+}
+
+void blue_small() {
+  small(false);
+}
+
+void blue_big() {
+  big2(false);
+}
+
+/*
+void blue_big() {
+  // big(false);
+  // Sample Code
+  // Move forward
+  // a_move_drive(30,30);
+
+  // Move backward
+  // a_move_drive(-30, -30);
+
+  // Left turn
+  // a_move_drive(30, 0);
+
+  // right turn
+  // a_move_drive(0, 30);
+  a_move_intake(127);
+
+  // pick up first block
+  a_move_drive(127, 127);
+  delay(400);
+    // turn right at the location
+  a_move_drive(-50, 50);
+  delay(800);
+
+  // drive forward to pick up the second block
+  a_move_drive(80, 80);
+  delay(800);
+
+  a_move_drive(0,0);
+  delay(1000);
+
+  // hold the block
+  a_move_intake(20);
+  // turn right for 45 degrees
+  a_move_drive(-50, 50);
+
+  delay(650);
 
   // drive to the goal zone
   a_move_drive(50, 50);
@@ -179,125 +435,18 @@ void big(bool isRed) {
   a_move_drive(-50, -50);
   delay(500);
   a_move_drive(0, 0);
-
 }
-
-void unfold() {
-  // Move hinge forward to make it loose
-  a_hinge.move(127);
-  delay(500);
-
-  a_hinge.move(-127);
-  delay(500);
-
-  a_hinge.move(0);
-
-  //delay(500);
-
-  // Position in the intake.
-  a_lift.move(127);
-  delay(500);
-
-  a_lift.move(-127);
-  delay(500);
-
-  a_lift.move(0);
-}
-
-void red_small()
-{
-  small(true);
-}
-
-void red_big() {
-  big(true);
-}
-
-void green_small() {
-  small(false);
-}
-
-void green_big() {
-  big(false);
-
-}
+*/
 
 void autonomous() {
-  pros::lcd::print(6, "10/7 10:28PM Welcome to auton program");
+  pros::lcd::print(6, "10/12 12:48 AM Welcome to auton program");
 
-  // unfold the robot
-  //unfold();
+  unfold();
 
-  // **** Add game time, uncomment the one that we are going to use and
-  // **** comment out the other three programs.
-  // **** Need to make changes before each game.
-  // red small
-  red_small();
+  // **** Add game time, uncomment the one that we are going to use and ***
 
-  // *** red big ***
-  //// red_big();
-
-  // *** green small ***
-  //// green_small();
-
-  // *** green big ***
-  //// green_big();
+  // red_small();
+  red_big();
+  // blue_small();
+  // blue_big();
 }
-
-
-
-/* Angela's Logic
-//red small
-  //intake
-  a_intake.move();
-  //drive forward to (4,1) --> 32 inches
-  a_drive.move();
-  //intake
-  a_intake.move();
-  //drive forward a little bit --> 5.5 inches
-  //intake
-  //turn right ? degrees --> about 125 degrees
-  //drive forward to goal --> about 21 inches
-  //hinge forward
-  //small outtake
-  //drive backward --> about 10 inches
-
-//red large
-  //intake
-  a_intake.move();
-  //drive forward to (1,1) --> 24 inches
-  //intake
-  //turn left 90 degrees
-  //drive forward to other cube --> 12 inches
-  //intake
-  //turn left ?2 degrees --> about 30 degrees
-  //drive forward to goal
-  //hinge forward
-  //small outtake
-  //drive backward
-//blue small
-  //intake
-  a_intake.move();
-  //drive forward to (4,1) --> 32 inches
-  //intake
-  //drive forward a little bit
-  //intake
-  //turn left ? degrees --> about 125 degrees
-  //drive forward to goal --> about 21 inches
-  //hinge forward
-  //small outtake
-  //drive backward --> about 10 inches
-//blue large
-  //intake
-  a_intake.move();
-  //drive forward to (1,1) --> 24 inches
-  //intake
-  //turn right 90 degrees
-  //drive forward to other cube --> 12 inches
-  //intake
-  //turn right ?2 degrees --> about 30 degrees
-  //drive forward to goal --> about 21 inches
-  //hinge forward
-  //small outtake
-  //drive backward --> about 10 inches
-  */

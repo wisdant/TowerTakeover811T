@@ -227,6 +227,16 @@ void opcontrol() {
 			move_intake(0);
 		}
 
+		//A special button Y to do a little bit reverse spin of the intake, basically L2
+		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_X) == 1) {
+			pros::lcd::print(3, "X pressed");
+			move_drive(30, 30);
+			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_X) == 1) {
+				pros::delay(10);
+			}
+			move_intake(0);
+		}
+
 		// IMPORTANT: DO NOT REMOVE
 		// This delay allows all other robot related functionality to be run between iterations of this while loop.
 		pros::delay(10);
