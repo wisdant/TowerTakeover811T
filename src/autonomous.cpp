@@ -26,11 +26,12 @@ pros::Motor a_left_rear_drive (LEFT_REAR_PORT, false);
 pros::Motor a_right_drive (RIGHT_FRONT_PORT, true);
 pros::Motor a_right_rear_drive (RIGHT_REAR_PORT, true);
 
-pros::Motor a_left_intake (LEFT_INTAKE_PORT, false);
-pros::Motor a_right_intake (RIGHT_INTAKE_PORT, true);
+pros::Motor a_left_intake (LEFT_INTAKE_PORT, pros::E_MOTOR_GEARSET_36, false);
+pros::Motor a_right_intake (RIGHT_INTAKE_PORT, pros::E_MOTOR_GEARSET_36, true);
 
-pros::Motor a_lift (LIFT_PORT, true);
-pros::Motor a_hinge (HINGE_PORT, true);
+pros::Motor a_lift (LIFT_PORT, pros::E_MOTOR_GEARSET_36, true);
+pros::Motor a_hinge (HINGE_PORT, pros::E_MOTOR_GEARSET_36, true);
+
 
 /**
  * Assign specified powers for the right and left sides of the drivetrain to the left and right motors, respectively.
@@ -64,10 +65,29 @@ void a_move_hinge(int power) {
   a_hinge.move(power);
 }
 
+/**
+ * Score in the goal zone
+ */
+void score() {
+  // Push the hinge
+  a_move_drive(0, 0);
+  a_move_intake(0);
+
+  //move hinge 50 for 2400
+  a_move_hinge(50);
+  delay(2450); //delay(2300); //delay(2100);
+  a_move_hinge(30);
+  delay(600); ///changed
+
+  a_move_hinge(0);
+  a_move_drive(50,50);
+  delay(300);
+  a_move_drive(0, 0);
+}
 /// ---------------------------------------------------------------------------
 
 void small(bool isRed) {
-
+  a_move_lift(-20);
   // start in-take
   a_move_intake(127);
 
@@ -86,14 +106,19 @@ void small(bool isRed) {
   a_move_drive(127,127);
   delay(150);
 
-  a_move_drive(20, 20);
-  delay(1200);
+  a_move_drive(10, 10); /// a_move_drive(20, 20);
+  delay(1100); ///delay(1200);
 
   a_move_drive(127,127);
   delay(200);
 
-  a_move_drive(20, 20);
-  delay(700);
+  a_move_drive(10, 10); ///a_move_drive(20, 20);
+  delay(1000); ///delay(700);
+
+  a_move_drive(127, 127); ///
+  delay(90); ///
+  a_move_drive(20, 20); ///
+  delay(1000); ///
 
   // Just hold the blocks
   a_move_intake(30);
@@ -103,11 +128,32 @@ void small(bool isRed) {
   delay(1100);
   */
 
+  /*///
   a_move_drive(-127,-127);
   delay(800);
   a_move_drive(-50,-50);
-  delay(900);
+  delay(1000); //changed since we moved up further from 900
+  *////
 
+  /*
+  a_move_drive(-127, -127);
+  delay(900);
+  */
+
+  if (isRed) {
+    a_move_drive(-127, -127);
+    delay (900);
+  }
+  else {
+    pros::lcd::print(5, "Hello this is blue small");
+    a_move_drive(-110, -127);
+    delay(700);
+  }
+
+  a_move_drive(0, 0); ///
+  delay(200); ///
+
+//////////
 
   if (isRed )
     //Make a right turn
@@ -117,11 +163,11 @@ void small(bool isRed) {
     a_move_drive(50, -50);
 
   //delay(1250);
-  delay(1000); ///changed
+  delay(850); ///delay(1000);
 
   // Drive to the goal zone
-  a_move_drive(35, 35);
-  delay(1000);
+  a_move_drive(50, 50); //a_move_drive(35, 35);
+  delay(800); //delay(1100); //delay(1000);
 
   if (isRed )
     //Make a right turn
@@ -131,21 +177,11 @@ void small(bool isRed) {
     a_move_drive(50, -50); /// a_move_drive (40, -40);
 
   //delay(1250);
-  delay(150);
+  delay(250); ///delay(150);
 
-  // Push the hinge
-  a_move_drive(0, 0);
-  a_move_intake(0);
-  a_move_hinge(50); /// a_move_hinge(30);
-  delay(2400); /// delay(3000);
-  a_move_hinge(0);
-  a_move_drive(40,40);
-  delay(200);
-  a_move_drive(0, 0);
-  a_move_intake(-127);
-  delay(200);
-  a_move_intake(0);
-  a_move_drive(-50,-50);
+  score();
+
+  a_move_drive(-70, -70); //a_move_drive(-50,-50);
   delay(700);
   a_move_drive(0, 0);
 
@@ -337,6 +373,8 @@ void big2 (bool isRed) {
 */
 /// ----------------------------------------------------------------------------
 
+
+
 void unfold() {
   // Move hinge forward to make it loose
   a_hinge.move(127);
@@ -351,15 +389,15 @@ void unfold() {
 
   // Position in the intake.
   a_lift.move(127);
-  delay(600);
+  delay(700); ///delay(600);
 
   a_lift.move(-127);
   delay(600);
 
   a_lift.move(0);
 
-  a_move_drive(-80, -80);
-  delay(350);
+  a_move_drive(-120, -120); //changed from -80
+  delay(250); //delay(350);
 
   a_move_drive(0, 0);
   delay(100);
@@ -381,6 +419,170 @@ void blue_small() {
 void blue_big() {
   big2(false);
 }
+
+// Code for autonomous skill contest
+void red_skills() {
+  // First pass to pick up 5
+  // red_small();
+  a_move_drive(-70, -70);
+  delay(250);
+  a_move_drive(0, 0);
+
+  //a_move_hinge(-127);
+  //delay(300);
+  //a_move_hinge(0);
+
+
+  // Logic: Back to the wall first to make sure the robot is aligned,
+  // then drive forward to pick up three blocks, and continue to
+  // drive to the other side of the field to pick up three blocks.
+  // Then drive forward and then to the goal zone to park.
+
+  //back to the wall
+  a_move_drive(-30, -70);
+  delay(2000);
+  a_move_drive(-50, -50);
+  delay(1000);
+
+  a_move_drive(0, 0);
+
+  // Second pass to pick up 6
+  a_move_intake(127);
+
+  // Drive to pick up the first block
+  a_move_drive(127,127);
+  delay(525);
+
+  a_move_drive(10, 10);
+  delay(800);
+
+  // Pick up the second block
+  a_move_drive(127,127);
+  delay(150);
+
+  a_move_drive(10, 10);
+  delay(800);
+
+  // Pick up the third block
+  a_move_drive(127,127);
+  delay(150);
+
+  a_move_drive(10, 10);
+  delay(1100);
+
+  // Drive across the field to reach the second line of blocks
+  // Pick up the 4th block
+  a_move_drive(127,127);
+  delay(525);
+
+  a_move_drive(10, 10);
+  delay(800);
+
+  // Pick up the 5th block
+  a_move_drive(127,127);
+  delay(150);
+
+  a_move_drive(10, 10);
+  delay(800);
+
+  // Pick up the 6th block
+  a_move_drive(127,127);
+  delay(150);
+
+  a_move_drive(10, 10);
+  delay(1100);
+
+/*
+  // Drive to the wall
+  a_move_drive(127,127);
+  delay(500);
+
+  a_move_drive(50, 50);
+  delay(500);
+
+  // Turn right
+  a_move_drive(50, -50);
+  delay(1000);
+
+  a_move_drive(50, 50);
+  delay(1000);
+
+  // Turn left a little bit for fault-tolerance reason
+  a_move_drive(-50, 50);
+  delay(100);
+
+  score();
+
+  // Drive back
+  a_move_drive(-70, -70);
+  delay(700);
+  a_move_drive(0, 0);
+
+  a_move_hinge(-127);
+  delay(400);
+  a_move_hinge(0);
+
+  // Turn right
+  a_move_drive(50, -50);
+  delay(1000);
+
+  // Third pass to pick up 4
+  a_move_intake(127);
+
+  a_move_drive(127,127);
+  delay(375);
+
+  a_move_drive(10, 10);
+  delay(800);
+
+  a_move_drive(127,127);
+  delay(150);
+
+  a_move_drive(10, 10);
+  delay(800);
+
+  a_move_drive(127,127);
+  delay(150);
+
+  a_move_drive(10, 10); /// a_move_drive(20, 20);
+  delay(1100); ///delay(1200);
+
+  a_move_drive(127,127);
+  delay(200);
+
+  a_move_drive(10, 10); ///a_move_drive(20, 20);
+  delay(1000); ///delay(700);
+
+  a_move_drive(127, 127);
+  delay(90);
+  a_move_drive(20, 20);
+  delay(1000);
+
+  //
+  a_move_drive(127, 127);
+  delay(800);
+
+  // Turn right
+  a_move_drive(50, -50);
+  delay(1000);
+
+  // Drive towards red big goal
+  a_move_drive(127, 127);
+  delay(2000);
+
+  score();
+
+  // Drive back
+  a_move_drive(-70, -70);
+  delay(700);
+  a_move_drive(0, 0);
+
+  a_move_hinge(-127);
+  delay(400);
+  a_move_hinge(0);
+*/
+}
+
 
 /*
 void blue_big() {
@@ -439,14 +641,15 @@ void blue_big() {
 */
 
 void autonomous() {
-  pros::lcd::print(6, "10/12 12:48 AM Welcome to auton program");
+  pros::lcd::print(6, "10/26 14:18 Welcome to auton program");
 
   unfold();
 
   // **** Add game time, uncomment the one that we are going to use and ***
 
   // red_small();
-  red_big();
-  // blue_small();
+  // red_big();
+  blue_small();
   // blue_big();
+  //red_skills();
 }

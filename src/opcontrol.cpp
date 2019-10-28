@@ -12,12 +12,13 @@ pros::Motor left_rear_drive (LEFT_REAR_PORT, false);
 pros::Motor right_drive (RIGHT_FRONT_PORT, true);
 pros::Motor right_rear_drive (RIGHT_REAR_PORT, true);
 
-pros::Motor left_intake (LEFT_INTAKE_PORT, false);
-pros::Motor right_intake (RIGHT_INTAKE_PORT, true);
+pros::Motor left_intake (LEFT_INTAKE_PORT, pros::E_MOTOR_GEARSET_36, false);
+pros::Motor right_intake (RIGHT_INTAKE_PORT, pros::E_MOTOR_GEARSET_36, true);
 
-pros::Motor lift (LIFT_PORT, true);
-pros::Motor hinge (HINGE_PORT, true);
+pros::Motor lift (LIFT_PORT, pros::E_MOTOR_GEARSET_36, true);
+pros::Motor hinge (HINGE_PORT, pros::E_MOTOR_GEARSET_36, true);
 
+pros::Vision vision_sensor (VISION_PORT);
 /**
  * Assign specified powers for the right and left sides of the drivetrain to the left and right motors, respectively.
  */
@@ -34,6 +35,9 @@ void move_drive(int right, int left) {
 void move_intake(int power) {
 	left_intake.move(power);
 	right_intake.move(power);
+	pros::lcd::print(6, "10/27 13:35 LEFT_INTAKE_PORT = %d", LEFT_INTAKE_PORT);
+  pros::lcd::print(7, "10/27 13:35 RIGHT_INTAKE_PORT = %d", RIGHT_INTAKE_PORT);
+
 }
 
 /**
@@ -91,7 +95,7 @@ void opcontrol() {
 	while (true) {
 		static int counter = 0;
 
-		pros::lcd::print(6, "10/6 7:21PM counter=%d", counter++);
+		pros::lcd::print(6, "10/15 10:00PM counter=%d", counter++);
 
 		/*
 		 * Drivetrain code
@@ -202,6 +206,10 @@ void opcontrol() {
 		 * This code controls the lift
 		 */
 		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_A) == 1) {
+			///move_hinge(127);
+			///pros::delay(200);
+			///move_hinge(0);
+			/// above valid?
 			move_lift(127); // move up the lift
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_A) == 1) {
 				pros::delay(10);
@@ -230,45 +238,20 @@ void opcontrol() {
 		//A special button Y to do a little bit reverse spin of the intake, basically L2
 		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_X) == 1) {
 			pros::lcd::print(3, "X pressed");
-			move_drive(30, 30);
+			move_intake(80); ///move_drive(30, 30);
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_X) == 1) {
 				pros::delay(10);
 			}
 			move_intake(0);
 		}
 
+		//pros::vision_object_s_t rtn = vision_sensor.get_by_size(0);
+    // Gets the largest object
+		//pros::lcd::print(5, "sig: %s", rtn.signature);
+		pros::lcd::print(5, "sig: %d", vision_sensor.get_object_count());
+
 		// IMPORTANT: DO NOT REMOVE
 		// This delay allows all other robot related functionality to be run between iterations of this while loop.
 		pros::delay(10);
 	}
 }
-
-/**
- * Runs the operator control code. This function will be started in its own task
- * with the default priority and stack size whenever the robot is enabled via
- * the Field Management System or the VEX Competition Switch in the operator
- * control mode.
- *
- * If no competition control is connected, this function will run immediately
- * following initialize().
- *
- * If the robot is disabled or communications is lost, the
- * operator control task will be stopped. Re-enabling the robot will restart the
- * task, not resume it from where it left off.
- */
-/*void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor left_mtr(1);
-	pros::Motor right_mtr(2);
-	while (true) {
-		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
-		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
-		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
-		int left = master.get_analog(ANALOG_LEFT_Y);
-		int right = master.get_analog(ANALOG_RIGHT_Y);
-
-		left_mtr = left;
-		right_mtr = right;
-		pros::delay(20);
-	}
-}*/
