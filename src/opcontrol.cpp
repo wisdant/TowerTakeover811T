@@ -135,7 +135,8 @@ void opcontrol() {
 			// TODO(Angela): Add special logic to make robot less sensitive to turn signals
 			// right_x represents the strength of turn signals. A simple division of right_x
 			// by 2 will make the robot 50% less sensitive to the turn signals.
-			right_x = right_x / 2;
+			// <Angela's code goes here.>
+
 			right_power = left_y - right_x;
 			left_power = left_y + right_x;
 		}
@@ -169,7 +170,8 @@ void opcontrol() {
 			// TODO(Angela): When the intake runs, we should apply some negative
 			// force to the arm so that it stays down. Since when we press "R1", the intake
 			// will stop. You need to remove this negative force when that happens as well.
-			move_lift(-20);
+			// <Angela's code goes here.>
+
 			move_intake(127); // Move the intake belt
 			//while (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1) == 1) { // Wait for the button to be released
 			//	pros::delay(10);
@@ -193,7 +195,8 @@ void opcontrol() {
 			move_intake(0); // Stop intake roller
 			// TODO(Angela): Since intake is stopped, the negative force applied to
 			// the arm should be removed as well.
-			move_lift(0);	// remove the force that keeps the arm down
+			// <Angela's code goes here.>
+
  			move_hinge(40); // Move the lift forward
  			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) == 1) { // Wait for the button to be released
  				pros::delay(10);
