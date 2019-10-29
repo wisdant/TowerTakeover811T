@@ -35,9 +35,6 @@ void move_drive(int right, int left) {
 void move_intake(int power) {
 	left_intake.move(power);
 	right_intake.move(power);
-	pros::lcd::print(6, "10/27 13:35 LEFT_INTAKE_PORT = %d", LEFT_INTAKE_PORT);
-  pros::lcd::print(7, "10/27 13:35 RIGHT_INTAKE_PORT = %d", RIGHT_INTAKE_PORT);
-
 }
 
 /**
@@ -91,6 +88,15 @@ void opcontrol() {
 	int button_y;
 	int button_a;
 
+	// A special variable to remember if the hinge is at the resting position.
+	// When we press "A" to lift the arm, if the hinge is at the resting position,
+	// we will move the hinge forward a little bit so that it does not block the arm.
+	// However, if the hinge is not at the resting position, we do not need to
+	// do anything speical.
+	// NOTE: we assume whenever we move the hinge back, we always move all the way back.
+	// This technically is not 100% accurate, but in reality, it should be the case.
+	// Even if it is not accurate, the driver can always manully move the hinge.
+	bool hinge_at_resting = true;
 
 	while (true) {
 		static int counter = 0;
@@ -126,10 +132,12 @@ void opcontrol() {
 
 
 		if (ARCADE) { // if arcade mode
+			// TODO(Angela): Add special logic to make robot less sensitive to turn signals
+			// right_x represents the strength of turn signals. A simple division of right_x
+			// by 2 will make the robot 50% less sensitive to the turn signals.
+			right_x = right_x / 2;
 			right_power = left_y - right_x;
 			left_power = left_y + right_x;
-			//right_power = left_y;
-			//left_power = left_y;
 		}
 		else { // if tank mode
 			right_power = right_y;
@@ -152,20 +160,20 @@ void opcontrol() {
 		// Assign power to the motors
 		move_drive(right_power, left_power);
 
-		pros::lcd::print(2, "L1 val: %d, R1 val: %d", master.get_digital(pros::E_CONTROLLER_DIGITAL_L1),
-						master.get_digital(pros::E_CONTROLLER_DIGITAL_R1));
-
 		/*
 		 * Intake code
 		 * This code controls the intake motors
 		 */
 		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1) == 1) {
 			pros::lcd::print(3, "L1 pressed");
+			// TODO(Angela): When the intake runs, we should apply some negative
+			// force to the arm so that it stays down. Since when we press "R1", the intake
+			// will stop. You need to remove this negative force when that happens as well.
+			move_lift(-20);
 			move_intake(127); // Move the intake belt
-			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1) == 1) { // Wait for the button to be released
-				pros::delay(10);
-			}
-			//move_intake(0);
+			//while (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1) == 1) { // Wait for the button to be released
+			//	pros::delay(10);
+			//}
 		}
 		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2) == 1) {
 			pros::lcd::print(3, "L2 pressed");
@@ -173,7 +181,7 @@ void opcontrol() {
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2) == 1) {
 				pros::delay(10);
 			}
-			//move_intake(0);
+			move_intake(0);
 		}
 
 		/*
@@ -183,22 +191,27 @@ void opcontrol() {
 		 if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) == 1) {
  			pros::lcd::print(4, "R1 pressed");
 			move_intake(0); // Stop intake roller
+			// TODO(Angela): Since intake is stopped, the negative force applied to
+			// the arm should be removed as well.
+			move_lift(0);	// remove the force that keeps the arm down
  			move_hinge(40); // Move the lift forward
  			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) == 1) { // Wait for the button to be released
  				pros::delay(10);
  			}
- 			// TODO: Add sensor so that the hinge does not go above certain threashold
  			move_hinge(0);
+			hinge_at_resting = false;
  		}
 
 		 if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) == 1) {
  			pros::lcd::print(4, "R2 pressed");
  			move_intake(0);		// Stop intake roller
- 			move_hinge(-100); // Move the hinge backward
+			move_lift(0);
+ 			move_hinge(-127); // Move the hinge backward
  			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) == 1) {
  				pros::delay(10);
  			}
  			move_hinge(0);
+			hinge_at_resting = true;
  		}
 
 		/*
@@ -210,6 +223,18 @@ void opcontrol() {
 			///pros::delay(200);
 			///move_hinge(0);
 			/// above valid?
+			/// Technically, this is not right. The hinge will move forward for 200ms
+			/// when you press "A" once. If you press it multiple times, the hinge will move
+			/// multiple times. We add a variable to remember whether the hinge is
+			/// at resting position. We apply this logic only if the hinge is not at resting.
+
+			if (hinge_at_resting) {
+				move_hinge(127);
+				pros::delay(200);
+				move_hinge(0);
+				hinge_at_resting = false;
+			}
+
 			move_lift(127); // move up the lift
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_A) == 1) {
 				pros::delay(10);
@@ -222,7 +247,7 @@ void opcontrol() {
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_B) == 1) {
 				pros::delay(10);
 			}
-			move_lift(0); // Assign a little power and allow the motor to hold it's position.
+			move_lift(0);
 		}
 
 		//A special button Y to do a little bit reverse spin of the intake, basically L2
@@ -242,13 +267,13 @@ void opcontrol() {
 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_X) == 1) {
 				pros::delay(10);
 			}
-			move_intake(0);
+			move_intake(2);
 		}
 
 		//pros::vision_object_s_t rtn = vision_sensor.get_by_size(0);
     // Gets the largest object
 		//pros::lcd::print(5, "sig: %s", rtn.signature);
-		pros::lcd::print(5, "sig: %d", vision_sensor.get_object_count());
+		//pros::lcd::print(5, "sig: %d", vision_sensor.get_object_count());
 
 		// IMPORTANT: DO NOT REMOVE
 		// This delay allows all other robot related functionality to be run between iterations of this while loop.
