@@ -1,68 +1,194 @@
 #include "main.h"
+using namespace pros;
 
-/**
- * Runs the user autonomous code. This function will be started in its own task
- * with the default priority and stack size whenever the robot is enabled via
- * the Field Management System or the VEX Competition Switch in the autonomous
- * mode. Alternatively, this function may be called in initialize or opcontrol
- * for non-competition testing purposes.
- *
- * If the robot is disabled or communications is lost, the autonomous task
- * will be stopped. Re-enabling the robot will restart the task, not re-start it
- * from where it left off.
- */
-//void autonomous() {}
+// Information about our motors, wheels, field and our robot:
+// 1800 ticks/rev with 36:1 gears, 900 ticks/rev with 18:1 gears, 300 ticks/rev with 6:1 gears
+//
+// Motors:
+//  Driving: Standrad gear ratio: 18:1 (200 RPM), 900 ticks / rev
+//  Hinge: 36:1 (100 RPM), 1800 ticks / rev
+//
+// Wheels: Diameter: 4.000" (101.6mm), Perimeter: 12.56" (320.20mm), Width: 1.125" (28.6mm)
+// Each inch is about
+// Tile: 2' * 2': 24" (609.6mm)
+// Cube: 5.5" * 5.5" (139.7mm)
+// Robot: C-channel: 17.5", beginning of intake: 20"
 
-#define delay(time) pros::delay(time)
+#define MOTOR_MAX_SPEED 100
+#define TICK_PER_INCH 72
+#define LOW_MARK (95 / 100)
+#define HIGH_MARK (105 / 100)
+
+
+extern int autonNumber;
+extern bool redAlliance;
+
 
 // Define the main controller of the robot.
-pros::Controller a_master(pros::E_CONTROLLER_MASTER);
+extern Controller master;
 
 // Define the robot's motors with their respective ports.
 // Passing true for the second parameter reverses the motor.
-pros::Motor a_left_drive (LEFT_FRONT_PORT, false);
-pros::Motor a_left_rear_drive (LEFT_REAR_PORT, false);
+extern Motor left_drive;
+extern Motor left_rear_drive;
 
-pros::Motor a_right_drive (RIGHT_FRONT_PORT, true);
-pros::Motor a_right_rear_drive (RIGHT_REAR_PORT, true);
+extern Motor right_drive;
+extern Motor right_rear_drive;
 
-pros::Motor a_left_intake (LEFT_INTAKE_PORT, pros::E_MOTOR_GEARSET_36, false);
-pros::Motor a_right_intake (RIGHT_INTAKE_PORT, pros::E_MOTOR_GEARSET_36, true);
+extern Motor left_intake;
+extern Motor right_intake;
 
-pros::Motor a_lift (LIFT_PORT, pros::E_MOTOR_GEARSET_36, true);
-pros::Motor a_hinge (HINGE_PORT, pros::E_MOTOR_GEARSET_36, true);
+extern Motor lift;
+extern Motor hinge;
 
+int start_ts;
+
+/**
+ * Set the encoder on how to measure how much the four drive motors have travelled.
+ * See more at https://pros.cs.purdue.edu/v5/api/cpp/motors.html#set-encoder-units
+ */
+void a_set_drive_encoding(motor_encoder_units_e_t units) {
+  left_drive.set_encoder_units(units);
+  left_rear_drive.set_encoder_units(units);
+  right_drive.set_encoder_units(units);
+  right_rear_drive.set_encoder_units(units);
+}
+
+/**
+ * Reset the counting for all four drive motors.
+ * See more at https://pros.cs.purdue.edu/v5/api/cpp/motors.html#tare-position
+ */
+void a_tare_position(){
+  left_drive.tare_position();
+  left_rear_drive.tare_position();
+  right_drive.tare_position();
+  right_rear_drive.tare_position();
+}
+
+/**
+ * Reset the counting for all four drive motors.
+ * See more at https://pros.cs.purdue.edu/v5/api/cpp/motors.html#tare-position
+ */
+void a_move_relative(double RF_target, double RR_target, double LF_target, double LR_target, std::int32_t velocity){
+  left_drive.move_relative(LF_target, velocity);
+  left_rear_drive.move_relative(LR_target, velocity);
+  right_drive.move_relative(RF_target, velocity);
+  right_rear_drive.move_relative(RR_target, velocity);
+
+  int counter = 0;
+  while (true) {
+    //printf("Counter: %d, LF: %f, LR: %f, RF: %f, RR: %f\n", counter++, left_drive.get_position(), left_rear_drive.get_position(),
+    //  right_drive.get_position(), right_rear_drive.get_position());
+
+    double LF_pos = left_drive.get_position();
+    double LR_pos = left_rear_drive.get_position();
+    double RF_pos = right_drive.get_position();
+    double RR_pos = right_rear_drive.get_position();
+
+    if (!((abs(LF_pos) > abs(LF_target) * 95/100) &&  (abs(LF_pos) < abs(LF_target) * 105/100))
+        || !((abs(LR_pos) > abs(LR_target) * 95/100) &&  (abs(LR_pos) < abs(LR_target) * 105/100))
+        || !((abs(RF_pos) > abs(RF_target) * 95/100) &&  (abs(RF_pos) < abs(RF_target) * 105/100))
+        || !((abs(RR_pos) > abs(RR_target) * 95/100) &&  (abs(RR_pos) < abs(RR_target) * 105/100))
+    ) {
+      delay(20);
+    }
+    else {
+      printf("Finished moving. Counter: %d, LF: %f, LR: %f, RF: %f, RR: %f\n", counter, left_drive.get_position(), left_rear_drive.get_position(),
+        right_drive.get_position(), right_rear_drive.get_position());
+      break;
+    }
+  }
+  printf("Finished moving.\n");
+  //while (!((left_drive.get_position() > LF_pos * LOW_MARK) &&  (left_drive.get_position() < LF_pos * HIGH_MARK))
+  //    || !((left_rear_drive.get_position() > LR_pos * LOW_MARK) &&  (left_rear_drive.get_position() < LR_pos * HIGH_MARK))
+  //    || !((right_drive.get_position() > RF_pos * LOW_MARK) &&  (right_drive.get_position() < RF_pos * HIGH_MARK))
+  //    || !((right_rear_drive.get_position() > RR_pos * LOW_MARK) &&  (right_rear_drive.get_position() < RR_pos * HIGH_MARK))
+  //  ) {
+  //  delay(2);
+  //}
+}
+
+void a_move_relative(double position, std::int32_t velocity){
+  printf("\nNEW relative!!! position = %f, low = %f, high=%f\n\n", position, position * 95/100, position * 105/100);
+
+  a_move_relative(position, position, position, position, velocity);
+}
+
+/**
+ * Reset the counting for all four drive motors.
+ * See more at https://pros.cs.purdue.edu/v5/api/cpp/motors.html#tare-position
+ */
+void a_move_absolute(double RF_pos, double RR_pos, double LF_pos, double LR_pos, std::int32_t velocity){
+  printf("Entering a_move_absolute(%f, %f, %f, %f)\n", LF_pos, LR_pos, RF_pos, RR_pos);
+  left_drive.move_absolute(LF_pos, velocity);
+  left_rear_drive.move_absolute(LR_pos, velocity);
+  right_drive.move_absolute(RF_pos, velocity);
+  right_rear_drive.move_absolute(RR_pos, velocity);
+
+  int counter = 0;
+
+
+
+  while (true) {
+    //printf("Counter: %d, LF: %f, LR: %f, RF: %f, RR: %f\n", counter++, left_drive.get_position(), left_rear_drive.get_position(),
+    //  right_drive.get_position(), right_rear_drive.get_position());
+    if (!((left_drive.get_position() > LF_pos * 95/100) &&  (left_drive.get_position() < LF_pos * 105/100))
+        || !((left_rear_drive.get_position() > LR_pos * 95/100) &&  (left_rear_drive.get_position() < LR_pos * 105/100))
+        || !((right_drive.get_position() > RF_pos * 95/100) &&  (right_drive.get_position() < RF_pos * 105/100))
+        || !((right_rear_drive.get_position() > RR_pos * 95/100) &&  (right_rear_drive.get_position() < RR_pos * 105/100))
+    ) {
+      delay(20);
+    }
+    else {
+      printf("Finished moving. Counter: %d, LF: %f, LR: %f, RF: %f, RR: %f\n", counter, left_drive.get_position(), left_rear_drive.get_position(),
+        right_drive.get_position(), right_rear_drive.get_position());
+      break;
+    }
+  }
+  //while (!((left_drive.get_position() > LF_pos * LOW_MARK) &&  (left_drive.get_position() < LF_pos * HIGH_MARK))
+  //    || !((left_rear_drive.get_position() > LR_pos * LOW_MARK) &&  (left_rear_drive.get_position() < LR_pos * HIGH_MARK))
+  //    || !((right_drive.get_position() > RF_pos * LOW_MARK) &&  (right_drive.get_position() < RF_pos * HIGH_MARK))
+  //    || !((right_rear_drive.get_position() > RR_pos * LOW_MARK) &&  (right_rear_drive.get_position() < RR_pos * HIGH_MARK))
+  //  ) {
+  //  delay(2);
+  //}
+}
+
+void a_move_absolute(double position, std::int32_t velocity){
+  printf("\nNEW absolute!!! position = %f, low = %f, high=%f\n\n", position, position * 95/100, position * 105/100);
+  a_move_absolute(position, position, position, position, velocity);
+}
 
 /**
  * Assign specified powers for the right and left sides of the drivetrain to the left and right motors, respectively.
  */
 void a_move_drive(int right, int left) {
-  a_left_drive.move(left);
-  a_left_rear_drive.move(left);
-  a_right_drive.move(right);
-  a_right_rear_drive.move(right);
+  left_drive.move(left);
+  left_rear_drive.move(left);
+  right_drive.move(right);
+  right_rear_drive.move(right);
 }
 
 /**
  * Assign a specified power to the in-take motor.
  */
 void a_move_intake(int power) {
-  a_left_intake.move(power);
-  a_right_intake.move(power);
+  left_intake.move(power);
+  right_intake.move(power);
 }
 
 /**
  * Assign a specified power to the lift motor.
  */
 void a_move_lift(int power) {
-  a_lift.move(power);
+  lift.move(power);
 }
 
 /**
  * Assign a specified power to the claw motor.
  */
 void a_move_hinge(int power) {
-  a_hinge.move(power);
+  hinge.move(power);
 }
 
 /**
@@ -145,15 +271,12 @@ void small(bool isRed) {
     delay (900);
   }
   else {
-    pros::lcd::print(5, "Hello this is blue small");
     a_move_drive(-110, -127);
     delay(700);
   }
 
-  a_move_drive(0, 0); ///
-  delay(200); ///
-
-//////////
+  a_move_drive(0, 0);
+  delay(200);
 
   if (isRed )
     //Make a right turn
@@ -191,6 +314,155 @@ void small(bool isRed) {
 
 }
 
+void unfold() {
+  // Move hinge forward to make it loose
+  hinge.move(127);
+  delay(600);
+
+  hinge.move(-127);
+  delay(500);  /// This 600ms can be saved by moving the next statement after lift.move(127);
+
+  hinge.move(0);
+
+  // Position in the intake.
+  lift.move(127);
+  delay(700); ///delay(600);
+
+  lift.move(-127);
+  delay(300);
+
+  lift.move(0);
+
+  a_move_drive(-120, -120); //changed from -80
+  delay(250); //delay(350);
+
+  a_move_drive(0, 0);
+  delay(100);
+}
+
+/**
+ * This takes advantage of V5's profiling movements and PID to control how far
+ * the motors travel, instead of relying on time.
+ */
+void small_fancy(bool isRed) {
+  a_move_lift(-20);
+  // start in-take
+  a_move_intake(127);
+
+  // For direct drive, we will count ticks.
+  a_set_drive_encoding(E_MOTOR_ENCODER_COUNTS);
+  a_tare_position();
+
+  // 1. Drive forward 6", pick up first Cube
+  double ticks = 6 * TICK_PER_INCH;
+  a_move_absolute(ticks, 75);
+  printf("Done with first move. Timelap = %d\n", millis() - start_ts);
+  delay(450);
+
+  // 2. Drive forward 5.5" at lower speed, pick up 2nd Cube
+  ticks += 6.5 * TICK_PER_INCH;
+  printf("ticks = %f Before second move.\n", ticks);
+  a_move_absolute(ticks, 50);
+  printf("Done with second move. Timelap = %d\n", millis() - start_ts);
+  pros::delay(650);
+  printf("after delay.\n");
+
+  // 3. Drive forward 5.5", pick up 3rd Cube
+  ticks += 5.5 * TICK_PER_INCH;
+  printf("ticks = %f Before 3rd move.\n", ticks);
+  a_move_absolute(ticks, 50);
+  printf("Done with 3rd move.Timelap = %d\n", millis() - start_ts);
+  delay(650);
+
+  // 4. Drive forward 5.5", pick up 4th Cube
+  ticks += 6 * TICK_PER_INCH;
+  a_move_absolute(ticks, 50);
+  printf("Done with 4th move.Timelap = %d\n", millis() - start_ts);
+  delay(700);
+
+  // 5. Drive forward 5.5", pick up 5th Cube
+  ticks += 6 * TICK_PER_INCH;
+  a_move_absolute(ticks, 50);
+  printf("Done with 5th move.Timelap = %d\n", millis() - start_ts);
+  delay(450);
+  printf("\n****After 5th****\n");
+  printf("LF\tLR\tRF\tRR\n");
+  printf("%f\t%f\t%f\t%f", left_drive.get_position(), left_rear_drive.get_position(),
+    right_drive.get_position(), right_rear_drive.get_position());
+  printf("\n*********************\n");
+
+  a_move_lift(0);
+
+  // 6. Backup 13.5" so that the center of robot is at the border of first tile and second tile
+  ticks -= 11.5 * TICK_PER_INCH;
+  a_move_absolute(ticks, 75);
+  printf("Done with backing.Timelap = %d\n", millis() - start_ts);
+  delay(100);
+  printf("Done with backing. Timelap = %d\n", millis() - start_ts);
+  printf("\n****After backing****\n");
+  printf("LF\tLR\tRF\tRR\n");
+  printf("%f\t%f\t%f\t%f", left_drive.get_position(), left_rear_drive.get_position(),
+    right_drive.get_position(), right_rear_drive.get_position());
+  printf("\n*********************\n");
+
+  // 7. Turn 135 degrees, which maps to ~16" travel for each wheel.
+  a_tare_position();
+  ticks = 12.25 * TICK_PER_INCH;
+  if (isRed) {
+    // Turn right. The right wheel travels backward. The left wheel travels forward
+    printf("Red alliance, turn right.\n");
+    a_move_relative(-1*ticks, -1*ticks, ticks, ticks, 75);
+  }
+  else {
+    printf("Blue alliance, turn left.\n");
+    a_move_relative(ticks, ticks, -1*ticks, -1*ticks, 75);
+  }
+  printf("Done with backing. Timelap = %d\n", millis() - start_ts);
+  printf("\n****After turn****\n");
+  printf("LF\tLR\tRF\tRR\n");
+  printf("%f\t%f\t%f\t%f", left_drive.get_position(), left_rear_drive.get_position(),
+    right_drive.get_position(), right_rear_drive.get_position());
+  printf("\n*********************\n");
+
+  //delay(100);
+
+  // 8. Drive to the goal zone.
+  a_tare_position();
+  ticks = 20 * TICK_PER_INCH;
+  a_move_relative(ticks, 100);
+  printf("Done with driving to the goal zone. Timelap = %d\n", millis() - start_ts);
+  delay(100);
+  printf("\n****Before Score****\n");
+  printf("LF\tLR\tRF\tRR\n");
+  printf("%f\t%f\t%f\t%f", left_drive.get_position(), left_rear_drive.get_position(),
+    right_drive.get_position(), right_rear_drive.get_position());
+  printf("\n*********************\n");
+
+  // 9. score
+  score();
+  printf("Done with scoring. Timelap = %d\n", millis() - start_ts);
+
+  // 10. Drive backward for 5"
+  a_tare_position();
+  ticks = -10 * TICK_PER_INCH;
+  a_move_relative(ticks, 100);
+  printf("Done with backing up. Timelap = %d\n", millis() - start_ts);
+
+  // 11. Move back the hinge.
+  a_move_hinge(-127);
+  delay(400);
+  a_move_hinge(0);
+  printf("Done with moving back hinge. Timelap = %d\n", millis() - start_ts);
+  //hinge.move_relative((-1)*degrees_to_turn, 100);
+  //a_move_hinge(0);
+}
+
+void big_one_cube(bool isRed) {
+
+  a_move_drive(80, 80);
+  delay(300);
+  a_move_drive(80,80);
+}
 /// ----------------------------------------------------------------------------
 
 void big(bool isRed) {
@@ -375,33 +647,6 @@ void big2 (bool isRed) {
 
 
 
-void unfold() {
-  // Move hinge forward to make it loose
-  a_hinge.move(127);
-  delay(600);
-
-  a_hinge.move(-127);
-  delay(600);
-
-  a_hinge.move(0);
-
-  //delay(500);
-
-  // Position in the intake.
-  a_lift.move(127);
-  delay(700); ///delay(600);
-
-  a_lift.move(-127);
-  delay(600);
-
-  a_lift.move(0);
-
-  a_move_drive(-120, -120); //changed from -80
-  delay(250); //delay(350);
-
-  a_move_drive(0, 0);
-  delay(100);
-}
 
 void red_small()
 {
@@ -640,16 +885,84 @@ void blue_big() {
 }
 */
 
+void one_cube(bool isRed) {
+  // For direct drive, we will count ticks.
+  a_set_drive_encoding(E_MOTOR_ENCODER_COUNTS);
+  a_tare_position();
+
+  // 1. Drive forward 6", pick up first Cube
+  double ticks = (-14) * TICK_PER_INCH;
+  a_move_relative(ticks, 100);
+  printf("Done with first move. \n");
+
+  ticks = 12 * TICK_PER_INCH;
+  a_move_relative(ticks, 75);
+  printf("Done with one cube auton. ");
+
+}
+
 void autonomous() {
-  pros::lcd::print(6, "10/26 14:18 Welcome to auton program");
 
+  printf("Welcome to Auton: 10/30 8:28PM. Force to call Red Small.\n");
+
+  // **** at game time, uncomment the one that we are going to use and ***
+  //redAlliance = false;
+  redAlliance = true;
+
+  //autonNumber = 1;  // One cube program
+  //autonNumber = 2;  // 2 cube program for large goal zone
+  autonNumber = 3;  // 5 cube program for small goal zone
+  //autonNumber = 4;  // skill test program
+
+  int start_ts = millis();
   unfold();
+  printf("Done with unfolding. Timelap = %d\n", millis() - start_ts);
 
-  // **** Add game time, uncomment the one that we are going to use and ***
+  if (redAlliance) {
+    lcd::print(5, "Red alliance program %d", autonNumber);
+    printf("Red alliance program %d\n", autonNumber);
+    switch (autonNumber) {
+      case 1:
+        one_cube(true);
+        break;
+      case 2:
+        red_big();
+        break;
+      case 3:
+        //red_small();
+        small_fancy(true);
+        break;
+      case 4:
+        red_skills();
+        break;
+    }
+  }
+  else {
+    lcd::print(5, "Blue alliance program %d", autonNumber);
+    printf("Blue alliance program %d\n", autonNumber);
+    switch (autonNumber) {
+      case 1:
+        one_cube(false);
+        break;
+      case 2:
+        blue_big();
+        break;
+      case 3:
+        blue_small();
+        break;
+      case 4:
+        //TODO: Add blue skills
+        break;
+    }
+  }
+
+
+
 
   // red_small();
   // red_big();
-  blue_small();
+  // blue_small();
   // blue_big();
   //red_skills();
+
 }
