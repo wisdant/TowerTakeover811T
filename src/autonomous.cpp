@@ -208,14 +208,14 @@ void score() {
   a_move_intake(0);
 
   //move hinge 50 for 2400
-  a_move_hinge(50);
-  delay(2450); //delay(2300); //delay(2100);
+  a_move_hinge(55);
+  delay (2200); //delay(2450); //delay(2300); //delay(2100);
   a_move_hinge(30);
-  delay(600); ///changed
+  delay(850); ///changed
 
   a_move_hinge(0);
   a_move_drive(50,50);
-  delay(300);
+  delay(450);
   a_move_drive(0, 0);
 }
 /// ---------------------------------------------------------------------------
@@ -334,7 +334,7 @@ void unfold() {
 
   // Position in the intake.
   lift.move(127);
-  delay(700); ///delay(600);
+  delay(750); ///delay(600);
 
   lift.move(-127);
   delay(300);
@@ -354,14 +354,16 @@ void score_fancy() {
 
   hinge.set_encoder_units(E_MOTOR_ENCODER_ROTATIONS);
   hinge.tare_position();
-  hinge.move_absolute(2, 50);
-  delay(2200);
+  hinge.move_absolute(1, 40); // was 45
+  delay(1500);  //was 2200
+  hinge.move_absolute(1, 30); // was 45
+  delay(1800);  //was 2200
   a_move_hinge(0);
 
   // Drive forward a little bit
   a_tare_position();
-  double ticks = 1.2 * TICK_PER_INCH;
-  a_move_absolute(ticks, 20, 100);  // velocity 20%, timeout 100ms
+  double ticks = 1.5 * TICK_PER_INCH;
+  a_move_absolute(ticks, 25, 100);  // velocity 20%, timeout 100ms
 }
 
 /**
@@ -388,24 +390,24 @@ void small_fancy(bool isRed) {
   ticks += 6.5 * TICK_PER_INCH;
   a_move_absolute(ticks, 75);
   printf("Done with second move. Timelap = %d\n", millis() - start_ts);
-  pros::delay(600);
+  pros::delay(800);   // was 650
 
   // 3. Drive forward 5.5", pick up 3rd Cube
   ticks += 5.5 * TICK_PER_INCH;
   a_move_absolute(ticks, 75);
   printf("Done with 3rd move.Timelap = %d\n", millis() - start_ts);
-  delay(650);
+  delay(800); // was 650
 
   // 4. Drive forward 6", pick up 4th Cube
   ticks += 6 * TICK_PER_INCH;
   a_move_absolute(ticks, 50);
   printf("Done with 4th move.Timelap = %d\n", millis() - start_ts);
-  delay(800);
+  delay(950); //800 works for 4 cubes
 
   // 5. Drive forward 6", pick up 5th Cube
   ticks += 6 * TICK_PER_INCH;
   a_move_absolute(ticks, 50);
-  delay(450);
+  delay(600); //was 450
   printf("****After 5th cube\tRF: %f\tRR: %f\tLF: %f\tLR: %f Timelap: %d\n",
     right_drive.get_position(), right_rear_drive.get_position(),
     left_drive.get_position(), left_rear_drive.get_position(), millis() - start_ts);
@@ -421,7 +423,7 @@ void small_fancy(bool isRed) {
     left_drive.get_position(), left_rear_drive.get_position(), millis() - start_ts);
 
   // New 7
-  double temp_ticks = 12.25 * TICK_PER_INCH;
+  double temp_ticks = 12 * TICK_PER_INCH;
   double RF_ticks;
   double RR_ticks;
   double LF_ticks;
@@ -463,6 +465,7 @@ void small_fancy(bool isRed) {
 
 
   // 9 Fine adjustment to robot position
+  /*
   if (isRed) {
     right_drive.move_absolute(1900, 75);
     right_rear_drive.move_absolute(1900, 75);
@@ -480,35 +483,39 @@ void small_fancy(bool isRed) {
   printf("****After adjust\tRF: %f\tRR: %f\tLF: %f\tLR: %f Timelap: %d\n",
     right_drive.get_position(), right_rear_drive.get_position(),
     left_drive.get_position(), left_rear_drive.get_position(), millis() - start_ts);
-
+  */
 
   // 10. score
-  score_fancy();
-  printf("****After adjust\tRF: %f\tRR: %f\tLF: %f\tLR: %f Timelap: %d\n",
-    right_drive.get_position(), right_rear_drive.get_position(),
-    left_drive.get_position(), left_rear_drive.get_position(), millis() - start_ts);
+  //score_fancy();
+  //printf("****After score\tRF: %f\tRR: %f\tLF: %f\tLR: %f Timelap: %d\n",
+  //  right_drive.get_position(), right_rear_drive.get_position(),
+  //  left_drive.get_position(), left_rear_drive.get_position(), millis() - start_ts);
+  score();
 
   // 11. Drive backward
+
   a_tare_position();
-  ticks = -10 * TICK_PER_INCH;
+  ticks = -21 * TICK_PER_INCH;
   a_move_relative(ticks, 100);
   printf("****All complete \tRF: %f\tRR: %f\tLF: %f\tLR: %f Timelap: %d\n",
     right_drive.get_position(), right_rear_drive.get_position(),
     left_drive.get_position(), left_rear_drive.get_position(), millis() - start_ts);
+  //a_move_drive(0, 0);
+
+/*
+  a_move_drive(-70, -70); //a_move_drive(-50,-50);
+  delay(600);
+  a_move_drive(0, 0);
+*/
 
   // 11. Move back the hinge.
   a_move_hinge(-127);
   delay(400);
   a_move_hinge(0);
   printf("Done with moving back hinge. Timelap = %d\n", millis() - start_ts);
+
 }
 
-void big_one_cube(bool isRed) {
-
-  a_move_drive(80, 80);
-  delay(300);
-  a_move_drive(80,80);
-}
 /// ----------------------------------------------------------------------------
 
 void big(bool isRed) {
@@ -683,9 +690,54 @@ void blue_big() {
 }
 
 // Code for autonomous skill contest
-void red_skills() {
+void skills(bool isRed) {
+
   // First pass to pick up 5
-  // red_small();
+  // 1. Complete auton
+  small_fancy(isRed);
+
+  // 2. Turn to face the pole
+  double ticks = 12.5 * TICK_PER_INCH;
+  a_move_relative(ticks, ticks, (-1)*ticks, (-1)*ticks, 75);
+  delay(1000);
+
+  // 3. Drive to the pole.
+  ticks = 22 * TICK_PER_INCH;
+  a_move_relative(ticks, 75);
+  delay(1000);
+
+  // 4. Intake a cube
+  a_move_intake(80);
+  delay(1100);
+  a_move_intake(2);
+  delay(1000);
+
+  //double ticks = (-2) * TICK_PER_INCH;
+  //a_move_relative(ticks, 75);
+  //delay(3000);
+
+  // 5. Lift the cube
+  a_move_hinge(127);
+  delay(200);
+  a_move_hinge(0);
+  delay(1000);
+
+  a_move_lift(127); // move up the lift
+  delay(1000);
+  a_move_lift(20); // Assign a little power and allow the motor to hold it's position.
+  delay(1000);
+
+  // 6. Put the cube to the tower
+  a_move_intake(-127); // Move the intake belt backward, for removing blocks from towers
+  delay(500);
+  a_move_intake(0);
+  a_move_lift(-127);
+  delay(500);
+  a_move_hinge(-127);
+  delay(200);
+
+
+  /*
   a_move_drive(-70, -70);
   delay(250);
   a_move_drive(0, 0);
@@ -754,7 +806,6 @@ void red_skills() {
   a_move_drive(10, 10);
   delay(1100);
 
-/*
   // Drive to the wall
   a_move_drive(127,127);
   delay(500);
@@ -851,13 +902,36 @@ void one_cube(bool isRed) {
   a_tare_position();
 
   // 1. Drive backward to push the cube into goal zone
-  double ticks = (-14) * TICK_PER_INCH;
-  a_move_relative(ticks, 100);
+  double ticks = (-6) * TICK_PER_INCH;
+  a_move_absolute(ticks, 100);
   printf("Done with first move. \n");
 
   ticks = 12 * TICK_PER_INCH;
   a_move_relative(ticks, 75);
-  printf("Done with one cube auton. ");
+  delay(1000);
+
+  // Turn the robot to face the goal zone
+  ticks = 2 * TICK_PER_INCH;
+  if (isRed) {
+    a_move_relative(ticks, ticks, (-1)*ticks, (-1)*ticks, 75);
+  }
+  else {
+    a_move_relative((-1)*ticks, (-1)*ticks, ticks, ticks, 75);
+  }
+  delay(1000);
+
+  ticks = 5 * TICK_PER_INCH;
+  a_move_relative(ticks, 75);
+  delay(1000);
+
+  ticks = 14 * TICK_PER_INCH;
+  if (isRed) {
+    a_move_relative(ticks, ticks, (-1)*ticks, (-1)*ticks, 75);
+  }
+  else {
+    a_move_relative((-1)*ticks, (-1)*ticks, ticks, ticks, 75);
+  }
+  delay(1000);
 
 }
 
@@ -867,13 +941,12 @@ void autonomous() {
 
   // **** For testing only, hardcode test case.
   // **** At game time, we will select from the menu
-  //redAlliance = true;
-  redAlliance = false;
+  redAlliance = true;
 
-  //autonNumber = 1;  // One cube program
-  //autonNumber = 2;  // 2 cube program for large goal zone
+  //autonNumber = 4;  // One cube program
+  // autonNumber = 2;  // 2 cube program for large goal zone
   autonNumber = 3;  // 5 cube program for small goal zone
-  //autonNumber = 4;  // skill test program
+
 
   start_ts = millis();
   unfold();
@@ -890,11 +963,13 @@ void autonomous() {
         red_big();
         break;
       case 3:
-        //red_small();
         small_fancy(true);
         break;
       case 4:
-        red_skills();
+        skills(true);
+        break;
+      default:
+        small_fancy(true);
         break;
     }
   }
@@ -912,8 +987,19 @@ void autonomous() {
         small_fancy(false);
         break;
       case 4:
-        //TODO: Add blue skills
+        skills(false);
+        break;
+      default:
+        small_fancy(false);
         break;
     }
   }
+
+// *** DO NOT call these functions anymore ***
+// red_small();
+// red_big();
+// blue_small();
+// blue_small();
+// blue_big();
+//red_skills();
 }

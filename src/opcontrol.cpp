@@ -1,24 +1,23 @@
 #include "main.h"
-
+using namespace pros;
 
 // Define the main controller of the robot.
-pros::Controller master(pros::E_CONTROLLER_MASTER);
+extern Controller master;
 
-// Define the robot's motors with their respective ports.
-// Passing true for the second parameter reverses the motor.
-pros::Motor left_drive (LEFT_FRONT_PORT, false);
-pros::Motor left_rear_drive (LEFT_REAR_PORT, false);
+extern Motor left_drive;
+extern Motor left_rear_drive;
 
-pros::Motor right_drive (RIGHT_FRONT_PORT, true);
-pros::Motor right_rear_drive (RIGHT_REAR_PORT, true);
+extern Motor right_drive;
+extern Motor right_rear_drive;
 
-pros::Motor left_intake (LEFT_INTAKE_PORT, pros::E_MOTOR_GEARSET_36, false);
-pros::Motor right_intake (RIGHT_INTAKE_PORT, pros::E_MOTOR_GEARSET_36, true);
+extern Motor left_intake;
+extern Motor right_intake;
 
-pros::Motor lift (LIFT_PORT, pros::E_MOTOR_GEARSET_36, true);
-pros::Motor hinge (HINGE_PORT, pros::E_MOTOR_GEARSET_36, true);
+extern Motor lift;
+extern Motor hinge;
 
-pros::Vision vision_sensor (VISION_PORT);
+extern Vision vision_sensor;
+
 /**
  * Assign specified powers for the right and left sides of the drivetrain to the left and right motors, respectively.
  */
@@ -101,7 +100,7 @@ void opcontrol() {
 	while (true) {
 		static int counter = 0;
 
-		pros::lcd::print(6, "10/15 10:00PM counter=%d", counter++);
+		lcd::print(6, "10/15 10:00PM counter=%d", counter++);
 
 		/*
 		 * Drivetrain code
@@ -109,10 +108,10 @@ void opcontrol() {
 		 */
 
 		// Assign the values from the controller's joysticks to variables
-		left_x = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_X);
-		left_y = master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-		right_x = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
-		right_y = master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
+		left_x = master.get_analog(E_CONTROLLER_ANALOG_LEFT_X);
+		left_y = master.get_analog(E_CONTROLLER_ANALOG_LEFT_Y);
+		right_x = master.get_analog(E_CONTROLLER_ANALOG_RIGHT_X);
+		right_y = master.get_analog(E_CONTROLLER_ANALOG_RIGHT_Y);
 
 		// Filter joystick values to prevent the drive from responding to miscalibrated joysticks
 		/*
@@ -136,6 +135,7 @@ void opcontrol() {
 			// right_x represents the strength of turn signals. A simple division of right_x
 			// by 2 will make the robot 50% less sensitive to the turn signals.
 			// <Angela's code goes here.>
+			right_x /= 2;
 
 			right_power = left_y - right_x;
 			left_power = left_y + right_x;
@@ -165,23 +165,24 @@ void opcontrol() {
 		 * Intake code
 		 * This code controls the intake motors
 		 */
-		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1) == 1) {
-			pros::lcd::print(3, "L1 pressed");
+		if (master.get_digital(E_CONTROLLER_DIGITAL_L1) == 1) {
+			lcd::print(3, "L1 pressed");
 			// TODO(Angela): When the intake runs, we should apply some negative
 			// force to the arm so that it stays down. Since when we press "R1", the intake
 			// will stop. You need to remove this negative force when that happens as well.
 			// <Angela's code goes here.>
+			move_lift(-20);
 
 			move_intake(127); // Move the intake belt
-			//while (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1) == 1) { // Wait for the button to be released
-			//	pros::delay(10);
+			//while (master.get_digital(E_CONTROLLER_DIGITAL_L1) == 1) { // Wait for the button to be released
+			//	delay(10);
 			//}
 		}
-		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2) == 1) {
-			pros::lcd::print(3, "L2 pressed");
+		if (master.get_digital(E_CONTROLLER_DIGITAL_L2) == 1) {
+			lcd::print(3, "L2 pressed");
 			move_intake(-127); // Move the intake belt backward, for removing blocks from towers
-			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2) == 1) {
-				pros::delay(10);
+			while (master.get_digital(E_CONTROLLER_DIGITAL_L2) == 1) {
+				delay(10);
 			}
 			move_intake(0);
 		}
@@ -190,28 +191,29 @@ void opcontrol() {
 		 * hinge code
 		 * This code controls the hinge that is responsible for pushing the tray
 		 */
-		 if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) == 1) {
- 			pros::lcd::print(4, "R1 pressed");
+		 if (master.get_digital(E_CONTROLLER_DIGITAL_R1) == 1) {
+ 			lcd::print(4, "R1 pressed");
 			move_intake(0); // Stop intake roller
 			// TODO(Angela): Since intake is stopped, the negative force applied to
 			// the arm should be removed as well.
 			// <Angela's code goes here.>
+			move_lift(0);
 
  			move_hinge(40); // Move the lift forward
- 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_R1) == 1) { // Wait for the button to be released
- 				pros::delay(10);
+ 			while (master.get_digital(E_CONTROLLER_DIGITAL_R1) == 1) { // Wait for the button to be released
+ 				delay(10);
  			}
  			move_hinge(0);
 			hinge_at_resting = false;
  		}
 
-		 if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) == 1) {
- 			pros::lcd::print(4, "R2 pressed");
+		 if (master.get_digital(E_CONTROLLER_DIGITAL_R2) == 1) {
+ 			lcd::print(4, "R2 pressed");
  			move_intake(0);		// Stop intake roller
 			move_lift(0);
  			move_hinge(-127); // Move the hinge backward
- 			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2) == 1) {
- 				pros::delay(10);
+ 			while (master.get_digital(E_CONTROLLER_DIGITAL_R2) == 1) {
+ 				delay(10);
  			}
  			move_hinge(0);
 			hinge_at_resting = true;
@@ -221,9 +223,9 @@ void opcontrol() {
 		 * Lift code
 		 * This code controls the lift
 		 */
-		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_A) == 1) {
+		if (master.get_digital(E_CONTROLLER_DIGITAL_A) == 1) {
 			///move_hinge(127);
-			///pros::delay(200);
+			///delay(200);
 			///move_hinge(0);
 			/// above valid?
 			/// Technically, this is not right. The hinge will move forward for 200ms
@@ -233,53 +235,53 @@ void opcontrol() {
 
 			if (hinge_at_resting) {
 				move_hinge(127);
-				pros::delay(200);
+				delay(200);
 				move_hinge(0);
 				hinge_at_resting = false;
 			}
 
 			move_lift(127); // move up the lift
-			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_A) == 1) {
-				pros::delay(10);
+			while (master.get_digital(E_CONTROLLER_DIGITAL_A) == 1) {
+				delay(10);
 			}
 			move_lift(20); // Assign a little power and allow the motor to hold it's position.
 		}
 
-		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_B) == 1) {
+		if (master.get_digital(E_CONTROLLER_DIGITAL_B) == 1) {
 			move_lift(-50); // Move down the lift
-			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_B) == 1) {
-				pros::delay(10);
+			while (master.get_digital(E_CONTROLLER_DIGITAL_B) == 1) {
+				delay(10);
 			}
 			move_lift(0);
 		}
 
 		//A special button Y to do a little bit reverse spin of the intake, basically L2
-		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_Y) == 1) {
-			pros::lcd::print(3, "Y pressed");
+		if (master.get_digital(E_CONTROLLER_DIGITAL_Y) == 1) {
+			lcd::print(3, "Y pressed");
 			move_intake(-40);
-			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_Y) == 1) {
-				pros::delay(10);
+			while (master.get_digital(E_CONTROLLER_DIGITAL_Y) == 1) {
+				delay(10);
 			}
 			move_intake(0);
 		}
 
 		//A special button Y to do a little bit reverse spin of the intake, basically L2
-		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_X) == 1) {
-			pros::lcd::print(3, "X pressed");
+		if (master.get_digital(E_CONTROLLER_DIGITAL_X) == 1) {
+			lcd::print(3, "X pressed");
 			move_intake(80); ///move_drive(30, 30);
-			while (master.get_digital(pros::E_CONTROLLER_DIGITAL_X) == 1) {
-				pros::delay(10);
+			while (master.get_digital(E_CONTROLLER_DIGITAL_X) == 1) {
+				delay(10);
 			}
 			move_intake(2);
 		}
 
-		//pros::vision_object_s_t rtn = vision_sensor.get_by_size(0);
+		//vision_object_s_t rtn = vision_sensor.get_by_size(0);
     // Gets the largest object
-		//pros::lcd::print(5, "sig: %s", rtn.signature);
-		//pros::lcd::print(5, "sig: %d", vision_sensor.get_object_count());
+		//lcd::print(5, "sig: %s", rtn.signature);
+		//lcd::print(5, "sig: %d", vision_sensor.get_object_count());
 
 		// IMPORTANT: DO NOT REMOVE
 		// This delay allows all other robot related functionality to be run between iterations of this while loop.
-		pros::delay(10);
+		delay(10);
 	}
 }
