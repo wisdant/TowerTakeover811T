@@ -1,4 +1,5 @@
 #include "main.h"
+using namespace std;
 using namespace pros;
 
 // Define the main controller of the robot.
@@ -114,17 +115,15 @@ void opcontrol() {
 		right_y = master.get_analog(E_CONTROLLER_ANALOG_RIGHT_Y);
 
 		// Filter joystick values to prevent the drive from responding to miscalibrated joysticks
-		/*
-		if (std::abs(left_y) < DRIVE_THRESHOLD) {
-			left_y = 0;
-		}
-		if (std::abs(right_y) < DRIVE_THRESHOLD) {
-			right_y = 0;
-		}
-		if(std::abs(right_x) < DRIVE_THRESHOLD) {
+		// if (std::abs(left_y) < DRIVE_THRESHOLD) {
+		// 	left_y = 0;
+		// }
+		//if (std::abs(right_y) < DRIVE_THRESHOLD) {
+		//	right_y = 0;
+		//}
+		if(std::abs(right_x) < DRIVE_THRESHOLD_RIGHT_CONTROL) {
 			right_x = 0;
 		}
-		*/
 
 		// Choose between arcade and tank drive controls
 		// and assign correct powers for the right and left sides of the robot
@@ -167,10 +166,6 @@ void opcontrol() {
 		 */
 		if (master.get_digital(E_CONTROLLER_DIGITAL_L1) == 1) {
 			lcd::print(3, "L1 pressed");
-			// TODO(Angela): When the intake runs, we should apply some negative
-			// force to the arm so that it stays down. Since when we press "R1", the intake
-			// will stop. You need to remove this negative force when that happens as well.
-			// <Angela's code goes here.>
 			move_lift(-20);
 
 			move_intake(127); // Move the intake belt
@@ -194,12 +189,8 @@ void opcontrol() {
 		 if (master.get_digital(E_CONTROLLER_DIGITAL_R1) == 1) {
  			lcd::print(4, "R1 pressed");
 			move_intake(0); // Stop intake roller
-			// TODO(Angela): Since intake is stopped, the negative force applied to
-			// the arm should be removed as well.
-			// <Angela's code goes here.>
-			move_lift(0);
 
- 			move_hinge(40); // Move the lift forward
+ 			move_hinge(127); // Move the lift forward
  			while (master.get_digital(E_CONTROLLER_DIGITAL_R1) == 1) { // Wait for the button to be released
  				delay(10);
  			}
@@ -210,7 +201,6 @@ void opcontrol() {
 		 if (master.get_digital(E_CONTROLLER_DIGITAL_R2) == 1) {
  			lcd::print(4, "R2 pressed");
  			move_intake(0);		// Stop intake roller
-			move_lift(0);
  			move_hinge(-127); // Move the hinge backward
  			while (master.get_digital(E_CONTROLLER_DIGITAL_R2) == 1) {
  				delay(10);
@@ -235,7 +225,7 @@ void opcontrol() {
 
 			if (hinge_at_resting) {
 				move_hinge(127);
-				delay(200);
+				delay(350);
 				move_hinge(0);
 				hinge_at_resting = false;
 			}
@@ -247,25 +237,62 @@ void opcontrol() {
 			move_lift(20); // Assign a little power and allow the motor to hold it's position.
 		}
 
+		if (master.get_digital(E_CONTROLLER_DIGITAL_UP) == 1) {
+			if (hinge_at_resting) {
+				move_hinge(127);
+				delay(350);
+				move_hinge(0);
+				hinge_at_resting = false;
+			}
+			move_lift(127);
+			delay(1400);
+			move_lift(20);
+		}
+
+		if (master.get_digital(E_CONTROLLER_DIGITAL_LEFT) == 1) {
+			if (hinge_at_resting) {
+				move_hinge(127);
+				delay(350);
+				move_hinge(0);
+				hinge_at_resting = false;
+			}
+			move_lift(127);
+			delay(1000);
+			move_lift(20);
+		}
+
+		if (master.get_digital(E_CONTROLLER_DIGITAL_RIGHT) == 1) {
+			if (hinge_at_resting) {
+				move_hinge(127);
+				delay(350);
+				move_hinge(0);
+				hinge_at_resting = false;
+			}
+			move_lift(127);
+			delay(950);
+			move_lift(20);
+		}
+
 		if (master.get_digital(E_CONTROLLER_DIGITAL_B) == 1) {
 			move_lift(-50); // Move down the lift
 			while (master.get_digital(E_CONTROLLER_DIGITAL_B) == 1) {
 				delay(10);
 			}
-			move_lift(0);
+			move_lift(20);
 		}
 
 		//A special button Y to do a little bit reverse spin of the intake, basically L2
 		if (master.get_digital(E_CONTROLLER_DIGITAL_Y) == 1) {
-			lcd::print(3, "Y pressed");
+			int temp_ts = millis();
 			move_intake(-40);
 			while (master.get_digital(E_CONTROLLER_DIGITAL_Y) == 1) {
 				delay(10);
 			}
+			printf("Pressing Y for = %d millis\n", millis() - temp_ts);
 			move_intake(0);
 		}
 
-		//A special button Y to do a little bit reverse spin of the intake, basically L2
+		//A special button X to do a little bit reverse spin of the intake, basically L2
 		if (master.get_digital(E_CONTROLLER_DIGITAL_X) == 1) {
 			lcd::print(3, "X pressed");
 			move_intake(80); ///move_drive(30, 30);
@@ -273,6 +300,33 @@ void opcontrol() {
 				delay(10);
 			}
 			move_intake(2);
+		}
+
+		//A special button UP to do scoring. It first moves at a fast speed. Then function as R1.
+		if (master.get_digital(E_CONTROLLER_DIGITAL_DOWN) == 1) {
+			printf("DOWN pressed.\n");
+			move_intake(0); // Stop intake roller
+			move_lift(0);
+
+ 			move_hinge(127); // Move the lift forward
+			delay(600);
+			printf("After 127.\n");
+
+			move_hinge(80); // Move the lift forward
+			delay(600);
+			printf("After 80.\n");
+
+			move_hinge(40);
+			//move_intake(-10);
+			int temp_ts = millis();
+ 			while (master.get_digital(E_CONTROLLER_DIGITAL_DOWN) == 1) { // Wait for the button to be released
+ 				delay(10);
+ 			}
+			printf("Done scoring. Time spent with 40 power  = %d\n", millis() - temp_ts);
+
+ 			move_hinge(0);
+			hinge_at_resting = false;
+
 		}
 
 		//vision_object_s_t rtn = vision_sensor.get_by_size(0);
