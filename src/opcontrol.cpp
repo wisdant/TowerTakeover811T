@@ -190,11 +190,12 @@ void opcontrol() {
  			lcd::print(4, "R1 pressed");
 			move_intake(0); // Stop intake roller
 
- 			move_hinge(127); // Move the lift forward
+ 			move_hinge(50); // Move the lift forward
  			while (master.get_digital(E_CONTROLLER_DIGITAL_R1) == 1) { // Wait for the button to be released
  				delay(10);
  			}
  			move_hinge(0);
+			delay(10);
 			hinge_at_resting = false;
  		}
 
@@ -223,12 +224,12 @@ void opcontrol() {
 			/// multiple times. We add a variable to remember whether the hinge is
 			/// at resting position. We apply this logic only if the hinge is not at resting.
 
-			if (hinge_at_resting) {
+			//if (hinge_at_resting) {
 				move_hinge(127);
-				delay(350);
+				delay(150);
 				move_hinge(0);
 				hinge_at_resting = false;
-			}
+			//}
 
 			move_lift(127); // move up the lift
 			while (master.get_digital(E_CONTROLLER_DIGITAL_A) == 1) {
@@ -238,47 +239,55 @@ void opcontrol() {
 		}
 
 		if (master.get_digital(E_CONTROLLER_DIGITAL_UP) == 1) {
-			if (hinge_at_resting) {
+			//if (hinge_at_resting) {
 				move_hinge(127);
 				delay(350);
 				move_hinge(0);
 				hinge_at_resting = false;
-			}
+			//}
 			move_lift(127);
 			delay(1400);
 			move_lift(20);
 		}
 
 		if (master.get_digital(E_CONTROLLER_DIGITAL_LEFT) == 1) {
-			if (hinge_at_resting) {
+			//if (hinge_at_resting) {
 				move_hinge(127);
 				delay(350);
 				move_hinge(0);
 				hinge_at_resting = false;
-			}
+			//}
 			move_lift(127);
 			delay(1000);
 			move_lift(20);
 		}
 
 		if (master.get_digital(E_CONTROLLER_DIGITAL_RIGHT) == 1) {
-			if (hinge_at_resting) {
+			//if (hinge_at_resting) {
 				move_hinge(127);
 				delay(350);
 				move_hinge(0);
 				hinge_at_resting = false;
-			}
+			//}
 			move_lift(127);
 			delay(950);
 			move_lift(20);
 		}
 
 		if (master.get_digital(E_CONTROLLER_DIGITAL_B) == 1) {
-			move_lift(-50); // Move down the lift
+			move_hinge(127);
+			delay(400);
+			move_hinge(0);
+			move_lift(-30); // Move down the lift
 			while (master.get_digital(E_CONTROLLER_DIGITAL_B) == 1) {
 				delay(10);
 			}
-			move_lift(20);
+			move_hinge(-127);
+			delay(250);
+			move_lift(-127);
+			delay(10);
+			move_lift(0);
+			move_hinge(0);
 		}
 
 		//A special button Y to do a little bit reverse spin of the intake, basically L2

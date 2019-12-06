@@ -320,15 +320,15 @@ void unfold() {
  */
 void unfold_new() {
 
-  hinge.move(127);
-  delay(100);
+  //hinge.move(127);
+  //delay(100);
 
   // Position in the intake.
   lift.move(127);
-  delay(300); ///delay(600);
+  delay(400); ///delay(600);
 
-  lift.move(-127);
-  delay(300);
+  lift.move(-85); //lift.move(-127);
+  delay(600); //delay(400);
 
   lift.move(0);
 
@@ -385,6 +385,47 @@ void score_new() {
 
   a_move_intake(-40);
   delay(100);
+
+  a_move_hinge(127); // Move the lift forward
+  delay(600);
+
+  a_move_hinge(80); // Move the lift forward
+  delay(600);
+
+  a_move_hinge(40);
+  delay(1500);
+
+  a_move_hinge(0);
+}
+
+void score_new2() {
+  a_move_drive(0, 0);
+  a_move_intake(0); // Stop intake roller
+  a_move_lift(0);
+
+  a_move_intake(-40);
+  delay(100);
+
+  a_move_hinge(100); // Move the lift forward
+  delay(600);
+
+  a_move_hinge(80); // Move the lift forward
+  delay(600);
+
+  a_move_hinge(30);
+  delay(1500);
+
+  a_move_hinge(0);
+}
+
+void score_eight() {
+
+  a_move_drive(0, 0);
+  a_move_intake(0); // Stop intake roller
+  a_move_lift(0);
+
+  //a_move_intake(-40);
+  //delay(100);
 
   a_move_hinge(127); // Move the lift forward
   delay(600);
@@ -477,9 +518,9 @@ void small_move_by_distance(bool isRed) {
   delay(200); //800 works for 4 cubes
 
   // 5. Drive forward 6", pick up 5th Cube
-  ticks += 6;
+  ticks += 16;
   a_move_absolute(ticks, 50);
-  delay(200); //was 450
+  delay(400); //was 450
   printf("****After 5th cube\tRF: %f\tRR: %f\tLF: %f\tLR: %f Timelap: %d\n",
     right_drive.get_position(), right_rear_drive.get_position(),
     left_drive.get_position(), left_rear_drive.get_position(), millis() - start_ts);
@@ -487,8 +528,8 @@ void small_move_by_distance(bool isRed) {
   a_move_lift(0);
 
   // 6. Backup to where the center of robot is at the border of first tile and second tile
-  ticks -= 30;
-  a_move_absolute(ticks, 75, 2500);
+  ticks -= 39.5;
+  a_move_absolute(ticks, 75, 2000);
   delay(100);
   printf("****After backing\tRF: %f\tRR: %f\tLF: %f\tLR: %f Timelap: %d\n",
     right_drive.get_position(), right_rear_drive.get_position(),
@@ -496,7 +537,7 @@ void small_move_by_distance(bool isRed) {
 
 
   // New 7
-  double temp_ticks = 10.25;
+  double temp_ticks = 9.75;
   double RF_ticks = ticks;
   double RR_ticks = ticks;
   double LF_ticks = ticks;
@@ -531,6 +572,13 @@ void small_move_by_distance(bool isRed) {
 
   // 9. Score
   score_new();
+  delay(100);
+  temp_ticks = 0.5;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 30);
   delay(100);
 
   // 10. Drive backward
@@ -644,7 +692,7 @@ void small_move_by_distance_new_five(bool isRed) {
     left_drive.get_position(), left_rear_drive.get_position(), millis() - start_ts);
 
   // 9. Score
-  score_new();
+  score_new2();
   printf("****After scoring, Timelap: %d\n", millis() - start_ts);
 
   // 10. Drive backward
@@ -958,7 +1006,7 @@ void small_eightcube(bool isRed) {
   a_move_intake(127);
   a_set_drive_encoding(E_MOTOR_ENCODER_COUNTS);
   a_tare_position();
-  delay(20);
+  delay(500);
 
   /// driving forward 15" for the first cube
   double ticks = 25;
@@ -971,7 +1019,7 @@ void small_eightcube(bool isRed) {
 
   /// driving forward 5.5" for the second cube
   ticks += 5.5;
-  a_move_absolute(ticks, 60);
+  a_move_absolute(ticks, 50);
   delay(50);
 
   printf("Done with the second move. FR: %f, RR: %f, FL: %f, RL: %f\n",
@@ -979,8 +1027,8 @@ void small_eightcube(bool isRed) {
     left_drive.get_position(), left_rear_drive.get_position());
 
   /// driving forward 5.5" for the third cube
-  ticks += 5.5;
-  a_move_absolute(ticks, 60);
+  ticks += 7;
+  a_move_absolute(ticks, 50);
   delay(500);
 
   printf("Done with the third move. FR: %f, RR: %f, FL: %f, RL: %f\n",
@@ -988,7 +1036,7 @@ void small_eightcube(bool isRed) {
     left_drive.get_position(), left_rear_drive.get_position());
 
   /// driving backward with four cubes
-  ticks -= 36.25;
+  ticks -= 37.75;
   a_move_absolute(ticks, 100, 2500);
   //delay(20);
 
@@ -997,7 +1045,7 @@ void small_eightcube(bool isRed) {
     left_drive.get_position(), left_rear_drive.get_position());
 
   /// adjust robot
-  double  temp_ticks = 8.75;
+  double  temp_ticks = 8.5;
   double RF_ticks;
   double RR_ticks;
   double LF_ticks;
@@ -1053,7 +1101,7 @@ void small_eightcube(bool isRed) {
 
 
   /// new turn - may cause issues since the robot is already turning on its own
-  temp_ticks = 8.75;
+  temp_ticks = 8.25;
   if (isRed) {
     RF_ticks += temp_ticks;
     RR_ticks += temp_ticks;
@@ -1132,7 +1180,7 @@ void small_eightcube(bool isRed) {
     left_drive.get_position(), left_rear_drive.get_position());
 
 
-  temp_ticks = 10.25;
+  temp_ticks = 9.75;
   if (isRed) {
     RF_ticks -= temp_ticks;
     RR_ticks -= temp_ticks;
@@ -1152,7 +1200,7 @@ void small_eightcube(bool isRed) {
     left_drive.get_position(), left_rear_drive.get_position());
 
 
-  temp_ticks = 12;
+  temp_ticks = 11;
   RF_ticks += temp_ticks;
   RR_ticks += temp_ticks;
   LF_ticks += temp_ticks;
@@ -1163,7 +1211,34 @@ void small_eightcube(bool isRed) {
   score_new();
   delay(100);
 
-  temp_ticks -= 32;
+  temp_ticks = 15;
+  RF_ticks -= temp_ticks;
+  RR_ticks -= temp_ticks;
+  LF_ticks -= temp_ticks;
+  LR_ticks -= temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  delay(100);
+
+  a_move_hinge(-127);
+  delay(600);
+
+  temp_ticks = 8.5;
+  if (isRed) {
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  }
+  else {
+    RF_ticks -= temp_ticks;
+    RR_ticks -= temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  }
+
+  temp_ticks = -1;
   RF_ticks += temp_ticks;
   RR_ticks += temp_ticks;
   LF_ticks += temp_ticks;
@@ -1171,6 +1246,44 @@ void small_eightcube(bool isRed) {
   a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
   delay(100);
 
+  temp_ticks = 44;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+
+  ///tower starts
+
+  a_move_intake(80);
+  delay(1400);
+  a_move_intake(2);
+  delay(1000);
+
+  temp_ticks = -5;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+
+  a_move_hinge(127);
+  delay(600); /// This value was increased to decrease chances of entanglement.
+  a_move_hinge(0);
+  delay(1000);
+
+  a_move_lift(127);
+  delay(1000);
+  a_move_lift(20);
+  delay(1000);
+
+  a_move_intake(-127);
+  delay(500);
+  a_move_intake(0);
+  a_move_lift(-127);
+  delay(500);
+  a_move_hinge(-127);
+  delay(200);
 }
 
 
@@ -1184,7 +1297,7 @@ void small_eightcube(bool isRed) {
 
 void autonomous() {
   redAlliance = true; ///variable
-  autonNumber = 3; ///variable
+  autonNumber = 5; ///variable
     // 1: 1 Cube; 2: 2 Cubes (Large Zone); 3: 5 Cubes (Small Zone); 4: Skills; 5: 8 Cubes (Small Zone)
 
   start_ts = millis();
@@ -1228,7 +1341,7 @@ void autonomous() {
         small_move_by_distance_new_five(false);
         break;
       case 4:
-        skills(false);
+        small_eightcube(false);
         break;
       case 5:
         small_eightcube(false);
