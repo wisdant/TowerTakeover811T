@@ -35,6 +35,12 @@ void move_drive(int right, int left) {
 void move_intake(int power) {
 	left_intake.move(power);
 	right_intake.move(power);
+	lcd::print(2, "left intake - current draw: %d, power: %d", left_intake.get_current_draw(), left_intake.get_power());
+	lcd::print(3, "right intake - current draw: %d, power: %d", right_intake.get_current_draw(), right_intake.get_power());
+	printf("left intake - current draw: %d, power: %f\tright intake - current draw: %d, power:\f\n",
+					left_intake.get_current_draw(), left_intake.get_power(),
+					right_intake.get_current_draw(), right_intake.get_power());
+
 }
 
 /**
@@ -101,7 +107,7 @@ void opcontrol() {
 	while (true) {
 		static int counter = 0;
 
-		lcd::print(1, "12/29 11:46PM counter=%d", counter++);
+		lcd::print(1, "1/18/2020 3:43PM, left intake port#=%d, counter=%d", LEFT_INTAKE_PORT, counter++);
 
 		/*
 		 * Drivetrain code

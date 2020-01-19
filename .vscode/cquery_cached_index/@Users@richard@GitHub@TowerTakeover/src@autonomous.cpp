@@ -1,3 +1,576 @@
+#include "main.h"
+using namespace std;
+using namespace pros;
+#define MOTOR_MAX_SPEED 100
+#define TICK_PER_INCH 72
+#define LOW_MARK (95 / 100)
+#define HIGH_MARK (105 / 100)
+#define ALLIANCE_TOWER 1
+#define MID_TOWER 2
+#define TALL_TOWER 3
+#define CENTRAL_TOWER 4
+#define DEFAULT_TIMEOUT 3000
+#define VERBOSE true
+extern int autonNumber;
+extern bool redAlliance;
+extern Controller master;
+extern Motor left_drive;
+extern Motor left_rear_drive;
+extern Motor right_drive;
+extern Motor right_rear_drive;
+extern Motor left_intake;
+extern Motor right_intake;
+extern Motor lift;
+extern Motor hinge;
+int start_ts;
+void a_set_drive_encoding(motor_encoder_units_e_t units) {
+  left_drive.set_encoder_units(units);
+  left_rear_drive.set_encoder_units(units);
+  right_drive.set_encoder_units(units);
+  right_rear_drive.set_encoder_units(units);
+}
+void a_tare_position(){
+  left_drive.tare_position();
+  left_rear_drive.tare_position();
+  right_drive.tare_position();
+  right_rear_drive.tare_position();
+}
+void move_by_distance(bool isAbsoluteMove, double FR_target, double RR_target,
+  double FL_target, double RL_target,std::int32_t velocity, int timeout){
+  // Converting the distance (inches) to ticks
+  FR_target *= TICK_PER_INCH;
+  RR_target *= TICK_PER_INCH;
+  FL_target *= TICK_PER_INCH;
+  RL_target *= TICK_PER_INCH;
+
+  if (VERBOSE) {
+    printf("Start moving. isAbsolute: %s, Timeout: %d, LF: %f, LR: %f, RF: %f, RR: %f, LF_target: %f, LR_target: %f, RF_target: %f, RR_target: %f  \n",
+      isAbsoluteMove ? "Absolute" : "Relative", timeout,
+      left_drive.get_position(), left_rear_drive.get_position(),
+      right_drive.get_position(), right_rear_drive.get_position(),
+      FL_target, RL_target, FR_target, RR_target
+    );
+  }
+
+  if (isAbsoluteMove) {
+    left_drive.move_absolute(FL_target, velocity);
+    left_rear_drive.move_absolute(RL_target, velocity);
+    right_drive.move_absolute(FR_target, velocity);
+    right_rear_drive.move_absolute(RR_target, velocity);
+  }
+  else {
+    left_drive.move_relative(FL_target, velocity);
+    left_rear_drive.move_relative(RL_target, velocity);
+    right_drive.move_relative(FR_target, velocity);
+    right_rear_drive.move_relative(RR_target, velocity);
+  }
+
+  int counter = 0;    // Used to decide if timeout has reached.
+  while (true) {
+    counter++;
+    if (VERBOSE) {
+      printf("Counter: %d, FR: %f, RR: %f, FL: %f, RL: %f\n", counter,
+        right_drive.get_position(), right_rear_drive.get_position(),
+        left_drive.get_position(), left_rear_drive.get_position());
+    }
+
+    double LF_pos = left_drive.get_position();
+    double LR_pos = left_rear_drive.get_position();
+    double RF_pos = right_drive.get_position();
+    double RR_pos = right_rear_drive.get_position();
+
+    if ((abs(LF_pos - FL_target) > abs(FL_target) * 5/100)
+        || (abs(LR_pos - RL_target) > abs(RL_target) * 5/100)
+        || (abs(RF_pos - FR_target) > abs(FR_target) * 5/100)
+        || (abs(RR_pos - RR_target) > abs(RR_target) * 5/100)
+    ) {
+      delay(20);
+      if ((timeout!=-1) && (counter * 20 > timeout)) break;
+    }
+    else {
+      delay(20);
+      break;
+    }
+  }
+  if (VERBOSE) {
+    printf("Finished moving: %d, FR: %f, RR: %f, FL: %f, RL: %f\n", counter,
+      right_drive.get_position(), right_rear_drive.get_position(),
+      left_drive.get_position(), left_rear_drive.get_position());
+  }
+}
+void a_move_relative(double target, std::int32_t velocity){
+   move_by_distance(false, target, target, target, target, velocity, DEFAULT_TIMEOUT);;
+ }
+void a_move_relative(double target, std::int32_t velocity, int timeout){
+   move_by_distance(false, target, target, target, target, velocity, timeout);;
+}
+void a_move_relative(double FR_target, double RR_target, double FL_target, double RL_target,
+       std::int32_t velocity){
+   move_by_distance(false, FR_target, RR_target, FL_target, RL_target, velocity, DEFAULT_TIMEOUT);
+}
+void a_move_relative(double FR_target, double RR_target, double FL_target, double RL_target,
+      std::int32_t velocity, int timeout){
+  move_by_distance(false, FR_target, RR_target, FL_target, RL_target, velocity, timeout);
+}
+void a_move_absolute(double position, std::int32_t velocity){
+  move_by_distance(true, position, position, position, position, velocity, DEFAULT_TIMEOUT);
+}
+void a_move_absolute(double position, std::int32_t velocity, int timeout){
+  move_by_distance(true, position, position, position, position, velocity, timeout);
+}
+void a_move_absolute(double FR_target, double RR_target, double FL_target, double RL_target,
+    std::int32_t velocity){
+  move_by_distance(true, FR_target, RR_target, FL_target, RL_target, velocity, DEFAULT_TIMEOUT);
+}
+void a_move_absolute(double FR_target, double RR_target, double FL_target, double RL_target,
+    std::int32_t velocity, int timeout){
+  move_by_distance(true, FR_target, RR_target, FL_target, RL_target, velocity, timeout);
+}
+void a_move_drive(int right, int left) {
+  left_drive.move(left);
+  left_rear_drive.move(left);
+  right_drive.move(right);
+  right_rear_drive.move(right);
+}
+void a_move_intake(int power) {
+  left_intake.move(power);
+  right_intake.move(power);
+}
+void a_move_lift(int power) {
+  lift.move(power);
+}
+void a_move_hinge(int power) {
+  hinge.move(power);
+}
+
+
+
+void unfold() {
+  a_move_intake(-80);
+  a_move_hinge(127);
+  delay(400);
+  a_move_hinge(-127);
+  a_move_intake(0);
+  delay(200);
+  a_move_hinge(-127);
+  delay(400);
+  a_move_hinge(0);
+  delay(400);
+}
+
+void stack() { //this function is copied from scoreTwoToFive
+  a_move_intake(0);
+  a_move_lift(-20);
+
+  a_move_hinge(127);
+  a_move_intake(-20);
+  delay(500);
+
+  a_move_intake(-25);
+  a_move_hinge(100);
+  delay(200);
+
+  a_move_hinge(80);
+  delay(200);
+
+  a_move_intake(-30);
+  a_move_hinge(60);
+  delay(200);
+
+  a_move_hinge(50);
+  delay(250);
+
+  a_move_hinge(40);
+  delay(700);
+
+  a_move_intake(-80);
+  delay(100);
+
+  a_move_intake(0);
+  a_move_drive(0, 0);
+  a_move_hinge(0);
+  a_move_lift(0);
+}
+
+void one(bool isRed) {
+  double ticks = -12;
+  a_move_absolute(ticks, 80, 2000);
+  ticks += 24;
+  a_move_absolute(ticks, 80, 2000);
+
+  a_move_hinge(127);
+  delay(150);
+}
+
+void large_four(bool isRed) {
+    a_set_drive_encoding(E_MOTOR_ENCODER_COUNTS);
+    a_tare_position();
+    unfold();
+    a_move_lift(-20);
+    a_move_intake(127);
+    double ticks = 26; //31
+    a_move_absolute(ticks, 110, 2800); //127
+    delay(300);
+    ticks += 6;
+    a_move_absolute(ticks, 50);
+    ticks += 6;
+    a_move_absolute(ticks, 50);
+    ticks += 7;
+    a_move_absolute(ticks, 50);
+    delay(300);
+    ticks += 7;
+    a_move_absolute(ticks, 50);
+    delay(300);
+    ticks -= 49;
+    a_move_absolute (ticks, 85, 1800);
+    ticks += 1.5;
+    a_move_absolute (ticks, 75);
+    double temp_ticks = 9;
+    double RF_ticks = ticks;
+    double RR_ticks = ticks;
+    double LF_ticks = ticks;
+    double LR_ticks = ticks;
+
+    if (isRed) {
+      RF_ticks += temp_ticks;
+      RR_ticks += temp_ticks;
+      LF_ticks -= temp_ticks;
+      LR_ticks -= temp_ticks;
+      a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1800);
+    }
+    else {
+      RF_ticks -= temp_ticks;
+      RR_ticks -= temp_ticks;
+      LF_ticks += temp_ticks;
+      LR_ticks += temp_ticks;
+      a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1800);
+    }
+    a_move_intake(40);
+    temp_ticks = 21.75; ////temp_ticks = 18.25;
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+
+    temp_ticks = 6.65; //temp_ticks = 7.5;
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 40);
+    stack();
+
+    a_move_hinge(80);
+    a_move_intake(-40);
+    delay(1700);
+    delay(300);
+
+    temp_ticks = -12;
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 95);
+
+    a_move_relative(0, 60);
+    a_move_hinge(0);
+    a_move_intake(0);
+}
+
+
+
+void small_six(bool isRed) { //this function is copied from  small_six_diagonal
+  a_set_drive_encoding(E_MOTOR_ENCODER_COUNTS);
+  a_tare_position();
+
+  double ticks = 3; ///
+
+  double RF_ticks = ticks; ///
+  double RR_ticks = ticks; ///
+  double LF_ticks = ticks; ///
+  double LR_ticks = ticks; ///
+
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75); ///
+
+  double temp_ticks = 3; ///
+  RF_ticks -= temp_ticks; ///
+  RR_ticks -= temp_ticks; ///
+  LF_ticks -= temp_ticks; ///
+  LR_ticks -= temp_ticks; ///
+
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75); ///
+
+  unfold();
+
+  a_move_lift(-20);
+  a_move_intake(127);
+  delay(200); //delay(400);
+
+  temp_ticks = 28;
+
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  delay(100);
+
+  temp_ticks = 9;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 30); //45
+  delay(600); //delay 300
+
+  /*
+  temp_ticks = 2.5;
+
+  if (isRed) {
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  }
+  else {
+    RF_ticks -= temp_ticks;
+    RR_ticks -= temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  }
+
+  temp_ticks = 8;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 55, 1200); //speed 75
+  delay(600); //700
+
+  temp_ticks = -8;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1200);
+
+  temp_ticks = -4;
+  if (isRed) {
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 4000);
+  }
+  else {
+    RF_ticks -= temp_ticks;
+    RR_ticks -= temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 4000);
+  }
+  */
+  a_move_lift(0);
+
+  temp_ticks = -16;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 2000);
+  delay(100);
+
+  temp_ticks = 11;
+
+  if (isRed) {
+    RF_ticks -= temp_ticks;
+    RR_ticks -= temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1700);
+  }
+  else {
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1700);
+  }
+
+  temp_ticks = 27; //temp_ticks = 21;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 45, 2000); //1800
+  delay(30);
+
+  a_move_intake(0);
+
+  a_tare_position();
+
+  temp_ticks = -1.5; //-1.75
+  RF_ticks = temp_ticks;
+  RR_ticks = temp_ticks;
+  LF_ticks = temp_ticks;
+  LR_ticks = temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 70, 600);
+  delay(30);
+
+  lcd::print(2, "Before stacking. Timelap=%d\n", millis() - start_ts);
+
+  a_move_intake(0);
+  stack();
+  a_move_intake(-45); //
+  delay(200); //
+
+
+  a_tare_position();
+
+  a_move_intake(-40);
+  a_move_drive(-100, -100);
+  a_move_hinge(-127);
+  delay(400);
+
+  a_move_lift(0);
+  a_move_intake(0);
+
+  lcd::print(3, "After back off. Timelap=%d\n", millis() - start_ts);
+
+  // Drive to position for manual control
+  a_tare_position();
+
+  temp_ticks = 10;
+
+  if (isRed) {
+    RF_ticks = temp_ticks;
+    RR_ticks = temp_ticks;
+    LF_ticks = (-1)*temp_ticks;
+    LR_ticks = (-1)*temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  }
+  else {
+    RF_ticks = (-1)*temp_ticks;
+    RR_ticks = (-1)*temp_ticks;
+    LF_ticks = temp_ticks;
+    LR_ticks = temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  }
+
+  temp_ticks = -30;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 2000);
+
+  temp_ticks = 5;
+  if (isRed) {
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  }
+  else {
+    RF_ticks -= temp_ticks;
+    RR_ticks -= temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  }
+
+  a_move_hinge(0);
+  a_move_drive(0, 0);
+  a_move_intake(0);
+}
+
+void small_seven(bool isRed) {
+
+}
+
+void small_eight(bool isRed) {
+
+}
+
+
+
+void skills(bool isRed) {
+  small_six(isRed);
+  double ticks = 40;
+  a_move_absolute(ticks, 80, 2000);
+  a_move_intake(127);
+  delay(600);
+  a_move_intake(-60);
+  delay(300);
+  ticks += -4;
+  a_move_absolute(ticks, 60);
+  a_move_lift(127);
+  delay(1000);
+  a_move_intake(-90);
+  ticks += -10;
+  a_move_absolute(ticks, 80);
+}
+
+
+
+void autonomous() {
+  redAlliance = true;
+  autonNumber = 0;
+  //1-small_six, 2-large_four, 3-skills
+  start_ts = millis();
+
+  switch (autonNumber) {
+    case 1:
+      small_six(redAlliance);
+      break;
+    case 2:
+      large_four(redAlliance);
+      break;
+    case 3:
+      skills(redAlliance);
+      break;
+    default:
+      one(redAlliance);
+      break;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT
+LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT
+LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT
+LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT
+LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT
+LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT
+LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT LEAFY YARROT
 /*
 RICHARD'S SKILLS PROGRAMS:
 
@@ -728,7 +1301,7 @@ void merryChristmas (bool isRed) {
   lcd::print(2, "After back away. Timelap=%d\n", millis() - start_ts);
 
 }
-*/
+/// comment out here
 
 
 
@@ -798,7 +1371,7 @@ int start_ts;
 /**
  * Set the encoder on how to measure how much the drive motors have travelled.
  * See more at https://pros.cs.purdue.edu/v5/api/cpp/motors.html#set-encoder-units
- */
+ /// comment out here
 void a_set_drive_encoding(motor_encoder_units_e_t units) {
   left_drive.set_encoder_units(units);
   left_rear_drive.set_encoder_units(units);
@@ -809,7 +1382,7 @@ void a_set_drive_encoding(motor_encoder_units_e_t units) {
 /**
  * Reset the counting for all four drive motors.
  * See more at https://pros.cs.purdue.edu/v5/api/cpp/motors.html#tare-position
- */
+ /// comment out here
 void a_tare_position(){
   left_drive.tare_position();
   left_rear_drive.tare_position();
@@ -828,7 +1401,7 @@ void a_tare_position(){
  * @velocity: how fast is the move. 0-100, 100 is the highest speed.
  * @timeout: In case it runs into indefinite loop,
  * the function is forced to return when the timeout (in ms) is reached.
- */
+ /// comment out here
 void move_by_distance(bool isAbsoluteMove, double FR_target, double RR_target,
   double FL_target, double RL_target,std::int32_t velocity, int timeout){
   // Converting the distance (inches) to ticks
@@ -904,7 +1477,7 @@ void move_by_distance(bool isAbsoluteMove, double FR_target, double RR_target,
  * Using the motor's move_relative move for @target inches at @velocity speed.
  * This is used when all the motors are moving towards the same direction.
  * Default timeout 1000 will be used.
- */
+ /// comment out here
 void a_move_relative(double target, std::int32_t velocity){
    move_by_distance(false, target, target, target, target, velocity, DEFAULT_TIMEOUT);;
  }
@@ -913,7 +1486,7 @@ void a_move_relative(double target, std::int32_t velocity){
   * Using the motor's move_relative move for @target inches at @velocity speed.
   * This is used when all the motors are moving towards the same direction.
   * @timeout: the timeout period for the movement.
-  */
+  /// comment out here
 void a_move_relative(double target, std::int32_t velocity, int timeout){
    move_by_distance(false, target, target, target, target, velocity, timeout);;
  }
@@ -927,7 +1500,7 @@ void a_move_relative(double target, std::int32_t velocity, int timeout){
   * @RL_target: the destination position for Rear Left
   * @velocity: how fast is the move. 0-100, 100 is the highest speed.
   * Default timeout 1000 will be used.
-  */
+  ///comment out here
  void a_move_relative(double FR_target, double RR_target, double FL_target, double RL_target,
        std::int32_t velocity){
    move_by_distance(false, FR_target, RR_target, FL_target, RL_target, velocity, DEFAULT_TIMEOUT);
@@ -943,7 +1516,7 @@ void a_move_relative(double target, std::int32_t velocity, int timeout){
   * @velocity: how fast is the move. 0-100, 100 is the highest speed.
   * @timeout: the timeout period for this movement. It should be slightly longer than
   * the normal expected duration of this movement.
-  */
+  /// comment out here
 void a_move_relative(double FR_target, double RR_target, double FL_target, double RL_target,
       std::int32_t velocity, int timeout){
   move_by_distance(false, FR_target, RR_target, FL_target, RL_target, velocity, timeout);
@@ -953,7 +1526,7 @@ void a_move_relative(double FR_target, double RR_target, double FL_target, doubl
  * Using the motor's move_absolute move for @target inches at @velocity speed.
  * This is used when all the motors are moving towards the same direction.
  * Default timeout 1000 will be used.
- */
+ /// comment out here
 void a_move_absolute(double position, std::int32_t velocity){
   move_by_distance(true, position, position, position, position, velocity, DEFAULT_TIMEOUT);
 }
@@ -962,7 +1535,7 @@ void a_move_absolute(double position, std::int32_t velocity){
  * Using the motor's move_absolute move for @target inches at @velocity speed.
  * This is used when all the motors are moving towards the same direction.
  * @timeout: the timeout period for the movement.
- */
+ ///comment out here
 void a_move_absolute(double position, std::int32_t velocity, int timeout){
   move_by_distance(true, position, position, position, position, velocity, timeout);
 }
@@ -976,7 +1549,7 @@ void a_move_absolute(double position, std::int32_t velocity, int timeout){
  * @RL_target: the destination position for Rear Left
  * @velocity: how fast is the move. 0-100, 100 is the highest speed.
  * Default timeout 1000 will be used.
- */
+ /// comment out here
 void a_move_absolute(double FR_target, double RR_target, double FL_target, double RL_target,
     std::int32_t velocity){
   move_by_distance(true, FR_target, RR_target, FL_target, RL_target, velocity, DEFAULT_TIMEOUT);
@@ -992,7 +1565,7 @@ void a_move_absolute(double FR_target, double RR_target, double FL_target, doubl
  * @velocity: how fast is the move. 0-100, 100 is the highest speed.
  * @timeout: the timeout period for this movement. It should be slightly longer than
  * the normal expected duration of this movement.
- */
+ /// comment out here
 void a_move_absolute(double FR_target, double RR_target, double FL_target, double RL_target,
     std::int32_t velocity, int timeout){
   move_by_distance(true, FR_target, RR_target, FL_target, RL_target, velocity, timeout);
@@ -1000,7 +1573,7 @@ void a_move_absolute(double FR_target, double RR_target, double FL_target, doubl
 
 /**
  * Assign specified powers for the right and left sides of the drivetrain respectively.
- */
+ /// comment out here
 void a_move_drive(int right, int left) {
   left_drive.move(left);
   left_rear_drive.move(left);
@@ -1010,7 +1583,7 @@ void a_move_drive(int right, int left) {
 
 /**
  * Assign a specified power to the in-take motor.
- */
+ /// comment out here
 void a_move_intake(int power) {
   left_intake.move(power);
   right_intake.move(power);
@@ -1018,14 +1591,14 @@ void a_move_intake(int power) {
 
 /**
  * Assign a specified power to the lift motor.
- */
+ /// comment out here
 void a_move_lift(int power) {
   lift.move(power);
 }
 
 /**
  * Assign a specified power to the hinge.
- */
+ /// comment out here
 void a_move_hinge(int power) {
   hinge.move(power);
 }
@@ -1095,7 +1668,7 @@ void unfold_new() {
   a_move_drive(0, 0);
   delay(100);
 }
-*/
+/// comment out here
 void vertical_unfold() {
   a_move_intake(-127);
   delay(400);
@@ -1125,7 +1698,7 @@ void unfold_super_simple() {
  * 2. Move the hinge forward at a higher speed for sometime
  * 3. Move the hinge at a lower speed for more time
  * 4. Drive forward a little to push the stack about the first cube forward a little.
- */
+ /// comment out here
 
  ///////////////////////////////////////////////////////////////////////////////
  ///////////////////////////////////////////////////////////////////////////////
@@ -1204,7 +1777,7 @@ void unfold_super_simple() {
    lcd::print(6, "After 50. Timelap=%d\n", millis() - start_ts);
 
    a_move_hinge(40);
-   delay(500);
+   delay(700); //500
 
    a_move_intake(-80);
    delay(100);
@@ -1372,7 +1945,7 @@ void large_threepointfive(bool isRed) {
   ticks += 6;
   a_move_absolute(ticks, 50);
   //testing//delay(3000);
-  */
+  /// comment out here
 
   ticks += 9;
   a_move_absolute(ticks, 50);
@@ -1383,7 +1956,7 @@ void large_threepointfive(bool isRed) {
   delay(300);
 
   ticks -= 48;
-  a_move_absolute (ticks, 75, 3000);
+  a_move_absolute (ticks, 75, 1800);
 
   ticks += 2;
   a_move_absolute (ticks, 75);
@@ -1400,33 +1973,39 @@ void large_threepointfive(bool isRed) {
     RR_ticks += temp_ticks;
     LF_ticks -= temp_ticks;
     LR_ticks -= temp_ticks;
-    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1800);
   }
   else {
     RF_ticks -= temp_ticks;
     RR_ticks -= temp_ticks;
     LF_ticks += temp_ticks;
     LR_ticks += temp_ticks;
-    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1800);
   }
 
+  a_move_intake(40);
 
-
-  temp_ticks = 18.75; ////temp_ticks = 18.25;
+  temp_ticks = 21.75; ////temp_ticks = 18.25;
   RF_ticks += temp_ticks;
   RR_ticks += temp_ticks;
   LF_ticks += temp_ticks;
   LR_ticks += temp_ticks;
   a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
 
-  temp_ticks = 7.25;
+  temp_ticks = 6.65; //temp_ticks = 7.5;
   RF_ticks += temp_ticks;
   RR_ticks += temp_ticks;
   LF_ticks += temp_ticks;
   LR_ticks += temp_ticks;
-  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 50);
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 40);
 
-  score();
+  scoreTwoToFive(isRed);
+  /*
+  a_move_hinge(80);
+  a_move_intake(-40);
+  delay(1700);
+  ///comment out here
+  delay(300);
 
   temp_ticks = -12;
   RF_ticks += temp_ticks;
@@ -1549,7 +2128,7 @@ void small_six(bool isRed) {
   /*
   a_move_intake(-127);
   delay(650); //was 850, shortened due to time constraints
-  */
+  /// comment out
 
   a_move_hinge(127);
   delay(600);
@@ -1578,7 +2157,7 @@ void small_six(bool isRed) {
   LF_ticks += temp_ticks;
   LR_ticks += temp_ticks;
   a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 45);
-  delay(300); ///delay(400);
+  delay(400);
 
   temp_ticks = 2.5;
 
@@ -1603,7 +2182,7 @@ void small_six(bool isRed) {
   LF_ticks += temp_ticks;
   LR_ticks += temp_ticks;
   a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 55, 1200); //speed 75
-  delay(200);
+  delay(300);
 
   temp_ticks = -8;
   RF_ticks += temp_ticks;
@@ -1689,7 +2268,7 @@ void small_six(bool isRed) {
     LR_ticks -= temp_ticks2;
     a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 300);
   }
-  */
+  ///comment out here
   temp_ticks = -2;
   RF_ticks += temp_ticks;
   RR_ticks += temp_ticks;
@@ -1735,16 +2314,20 @@ void small_six_diagonal(bool isRed) {
   double LF_ticks = ticks;
   double LR_ticks = ticks;
 
+  a_move_intake(-120); //
   a_move_hinge(127);
-  delay(600);
+  delay(700); //600
   a_move_hinge(-127);
-  delay(400);
+  delay(500); //400
   a_move_hinge(0);
+  a_move_intake(0); //
+  delay(200); //delay(400);
 
   a_move_lift(-20);
   a_move_intake(127);
+  delay(200); //delay(400);
 
-  double temp_ticks = 30;
+  double temp_ticks = 28;
 
   RF_ticks += temp_ticks;
   RR_ticks += temp_ticks;
@@ -1753,13 +2336,13 @@ void small_six_diagonal(bool isRed) {
   a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
   delay(100);
 
-  temp_ticks = 7;
+  temp_ticks = 9;
   RF_ticks += temp_ticks;
   RR_ticks += temp_ticks;
   LF_ticks += temp_ticks;
   LR_ticks += temp_ticks;
-  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 45);
-  delay(300);
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 30); //45
+  delay(600); //delay 300
 
   temp_ticks = 2.5;
 
@@ -1784,7 +2367,7 @@ void small_six_diagonal(bool isRed) {
   LF_ticks += temp_ticks;
   LR_ticks += temp_ticks;
   a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 55, 1200); //speed 75
-  delay(400);
+  delay(600); //700
 
   temp_ticks = -8;
   RF_ticks += temp_ticks;
@@ -1836,19 +2419,19 @@ void small_six_diagonal(bool isRed) {
     a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1700);
   }
 
-  temp_ticks = 21; //temp_ticks = 20;
+  temp_ticks = 27; //temp_ticks = 21;
   RF_ticks += temp_ticks;
   RR_ticks += temp_ticks;
   LF_ticks += temp_ticks;
   LR_ticks += temp_ticks;
-  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 45, 1800);
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 45, 2000); //1800
   delay(30);
 
   a_move_intake(0);
 
   a_tare_position();
 
-  temp_ticks = -1.75; //temp_ticks = -2;
+  temp_ticks = -1.5; //-1.75
   RF_ticks = temp_ticks;
   RR_ticks = temp_ticks;
   LF_ticks = temp_ticks;
@@ -1922,6 +2505,7 @@ void small_six_diagonal(bool isRed) {
 
   a_move_hinge(0);
   a_move_drive(0, 0);
+  a_move_intake(0);
 
   lcd::print(4, "After positioning. Timelap=%d\n", millis() - start_ts);
 
@@ -2109,8 +2693,8 @@ void skillsprogram() {
 
 void autonomous() {
 
-  redAlliance = true; ///variable
-  autonNumber = 3; ///variable
+  redAlliance = false; ///variable
+  autonNumber = 6; ///variable
   // 1: Stacking; 2: 6 Cubes Parallel (S); 3: 6 Cubes Diagonal (S); 4: 7 Cubes (S); 5: 8 Cubes (S); 6: 3.5 Cubes (L); 7: Skills
 
   start_ts = millis();
@@ -2146,7 +2730,4 @@ void autonomous() {
   }
 
 }
-
-
-
-//To-do: unfolding, autonomous testing
+*/
