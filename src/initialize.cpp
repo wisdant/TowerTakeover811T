@@ -111,12 +111,13 @@ Controller master(E_CONTROLLER_MASTER);
 // Define the robot's motors with their respective ports.
 // Passing true for the second parameter reverses the motor.
 Motor left_drive (LEFT_FRONT_PORT, false);
+
 Motor left_rear_drive (LEFT_REAR_PORT, false);
 
 Motor right_drive (RIGHT_FRONT_PORT, true);
 Motor right_rear_drive (RIGHT_REAR_PORT, true);
 
-Motor left_intake (LEFT_INTAKE_PORT, E_MOTOR_GEARSET_36, false);
+Motor left_intake (LEFT_INTAKE_PORT, E_MOTOR_GEARSET_36, false);  
 Motor right_intake (RIGHT_INTAKE_PORT, E_MOTOR_GEARSET_36, true);
 
 Motor lift (LIFT_PORT, E_MOTOR_GEARSET_36, true);

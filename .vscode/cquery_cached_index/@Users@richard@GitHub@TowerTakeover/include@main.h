@@ -65,19 +65,18 @@ extern "C" {
 const double DRIVE_SPEED = 1.00; // Changes the maximum drive speed (range between 0 and 1)
 const int ARCADE = true; // Controls whether the drive is tank style (false) or arcade style (true)
 const int DRIVE_THRESHOLD  = 12; // Controls the minimum power that can be assigned to drive motors
-const int DRIVE_THRESHOLD_RIGHT_CONTROL  = 50; // Set number high to overcome a controller defect
+const int DRIVE_THRESHOLD_RIGHT_CONTROL  = 20; // Set number high to overcome a controller defect
 
+const int LEFT_FRONT_PORT = 3;
+const int LEFT_REAR_PORT = 12;
+const int LEFT_INTAKE_PORT = 13;
 
-const int RIGHT_FRONT_PORT = 3;
-const int RIGHT_REAR_PORT = 2;
-const int RIGHT_INTAKE_PORT = 15;
+const int RIGHT_FRONT_PORT = 9;
+const int RIGHT_REAR_PORT = 20;
+const int RIGHT_INTAKE_PORT = 19;
 
-const int HINGE_PORT = 4;
-const int LIFT_PORT = 5;
-
-const int LEFT_FRONT_PORT = 7;
-const int LEFT_REAR_PORT = 9;
-const int LEFT_INTAKE_PORT = 17;
+const int HINGE_PORT = 17;
+const int LIFT_PORT = 16;
 
 const int VISION_PORT = 11;
 
