@@ -143,16 +143,16 @@ void a_move_hinge(int power) {
   hinge.move(power);
 }
 
-
-
 void unfold() {
-  a_move_intake(-30);
   a_move_hinge(127);
-  delay(600);
+  delay(800);
+  a_move_intake(-80);
+  a_move_hinge(127);
+  delay(100);
+  a_move_intake(127);
   a_move_hinge(-127);
-  delay(300);
+  delay(700);
   a_move_hinge(0);
-  //delay(400);
 }
 
 void stackSixEight() {
@@ -186,13 +186,13 @@ void stackThreeFour() {
 
   a_move_hinge(100);
   a_move_intake(20);
-  delay(400); //300
+  delay(900); //300
 
   a_move_hinge(60);
+  a_move_intake(-20);
   delay(1100);
 
   a_move_hinge(40);
-  a_move_intake(-50);
   delay(1200);
 
   a_move_intake(0);
@@ -204,11 +204,90 @@ void stackThreeFour() {
 void one(bool isRed) {
   double ticks = -12;
   a_move_absolute(ticks, 80, 2000);
-  ticks += 24;
+  ticks += 12;
   a_move_absolute(ticks, 80, 2000);
+  a_move_drive(0, 0);
+}
 
-  a_move_hinge(127);
-  delay(150);
+void large_three(bool isRed){
+  a_set_drive_encoding(E_MOTOR_ENCODER_COUNTS);
+  a_tare_position();
+  unfold();
+  a_move_lift(-20);
+  a_move_intake(127);
+  double temp_ticks = 14;
+  double RF_ticks = temp_ticks;
+  double RR_ticks = temp_ticks;
+  double LF_ticks = temp_ticks;
+  double LR_ticks = temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 80, 3000);
+  temp_ticks = 7.5;
+  if (isRed) {
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+  }
+  else {
+    RF_ticks -= temp_ticks;
+    RR_ticks -= temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+  }
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 80, 1000);
+
+  temp_ticks = 18;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 80, 10000);
+
+  temp_ticks = 3.95; //3.75
+  if (isRed) {
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+  }
+  else {
+    RF_ticks -= temp_ticks;
+    RR_ticks -= temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+  }
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 80, 3000);
+
+  temp_ticks = 19;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 82, 6000);
+
+  temp_ticks = -1.5;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 127, 6000);
+
+  stackThreeFour();
+
+  temp_ticks = -12;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 80, 3000);
+
+  a_move_hinge(-127);
+  delay(2000);
+
+  a_move_lift(0);
+  a_move_hinge(0);
+  a_move_intake(0);
+  a_move_drive(0, 0);
 }
 
 void large_four(bool isRed) {
@@ -464,16 +543,19 @@ void small_six(bool isRed) {
 
   //a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75); ///
 
-  unfold();
+  a_move_hinge(127);
+  delay(800);
+  a_move_intake(-80);
+  a_move_hinge(127);
+  delay(100);
+  a_move_intake(127);
 
   /*
   a_move_lift(-20);
   a_move_intake(127);
   delay(200); //delay(400);
   */
-
-  a_move_intake(127); //
-
+  a_move_hinge(-127);
   temp_ticks = 28;
 
   RF_ticks += temp_ticks;
@@ -481,6 +563,7 @@ void small_six(bool isRed) {
   LF_ticks += temp_ticks;
   LR_ticks += temp_ticks;
   a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  a_move_hinge(0);
   //delay(100);
 
   temp_ticks = 9;
@@ -552,7 +635,7 @@ void small_six(bool isRed) {
   a_move_intake(80);
 
   if (isRed) {
-    temp_ticks = 9.75; //11.25 //10
+    temp_ticks = 10.55; //11.25 //10
     RF_ticks -= temp_ticks;
     RR_ticks -= temp_ticks;
     LF_ticks += temp_ticks;
@@ -560,7 +643,7 @@ void small_six(bool isRed) {
     a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 85, 1900);
   }
   else {
-    temp_ticks = 11.25; //11.55 //10
+    temp_ticks = 10.55; //11.55 //11.25
     RF_ticks += temp_ticks;
     RR_ticks += temp_ticks;
     LF_ticks -= temp_ticks;
@@ -573,13 +656,13 @@ void small_six(bool isRed) {
   RR_ticks += temp_ticks;
   LF_ticks += temp_ticks;
   LR_ticks += temp_ticks;
-  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 65, 2050); //45 speed
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 2050); //45 speed
 
   a_move_intake(0);
 
   a_tare_position();
 
-  temp_ticks = -3; //-1.75
+  temp_ticks = -2.5; //-3
   RF_ticks = temp_ticks;
   RR_ticks = temp_ticks;
   LF_ticks = temp_ticks;
@@ -604,14 +687,11 @@ void small_six(bool isRed) {
   a_move_hinge(-127);
   delay(400);
   */
-
-  a_move_lift(0);
-  a_move_intake(0);
   a_move_hinge(-127);
-  delay(300);
+  delay(1000);
 
   a_tare_position();
-
+  /*
   temp_ticks = 10;
 
   if (isRed) {
@@ -619,14 +699,14 @@ void small_six(bool isRed) {
     RR_ticks = temp_ticks;
     LF_ticks = (-1)*temp_ticks;
     LR_ticks = (-1)*temp_ticks;
-    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1200);
   }
   else {
     RF_ticks = (-1)*temp_ticks;
     RR_ticks = (-1)*temp_ticks;
     LF_ticks = temp_ticks;
     LR_ticks = temp_ticks;
-    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1200);
   }
 
   temp_ticks = -30;
@@ -635,7 +715,7 @@ void small_six(bool isRed) {
   LF_ticks += temp_ticks;
   LR_ticks += temp_ticks;
 
-  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 2000);
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1600);
 
   temp_ticks = 5;
   if (isRed) {
@@ -643,7 +723,7 @@ void small_six(bool isRed) {
     RR_ticks += temp_ticks;
     LF_ticks -= temp_ticks;
     LR_ticks -= temp_ticks;
-    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 240);
   }
   else {
     RF_ticks -= temp_ticks;
@@ -652,49 +732,227 @@ void small_six(bool isRed) {
     LR_ticks += temp_ticks;
     a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
   }
+  */
 
+  a_move_lift(0);
   a_move_hinge(0);
   a_move_drive(0, 0);
   a_move_intake(0);
 }
 
-void small_eight(bool isRed) {
+void small_seven(bool isRed) {
+  a_set_drive_encoding(E_MOTOR_ENCODER_COUNTS);
+  a_tare_position();
 
+  unfold();
+
+  a_move_lift(-20);
+  a_move_intake(127);
+
+  double temp_ticks = 24;
+  double RF_ticks = 0;
+  double RR_ticks = 0;
+  double LF_ticks = 0;
+  double LR_ticks = 0;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+
+  temp_ticks = 9.25; //8.75
+  if (isRed) {
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+  }
+  else {
+    RR_ticks -= temp_ticks;
+    RF_ticks -= temp_ticks;
+  }
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+
+  temp_ticks = -20;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 2000);
+
+  temp_ticks = 9.625;
+  if (isRed) {
+    RR_ticks -= temp_ticks;
+    RF_ticks -= temp_ticks;
+  }
+  else {
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+  }
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1000);
+
+  temp_ticks = -3;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 127, 600);
+
+  a_tare_position();
+
+  temp_ticks = 28;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  a_move_hinge(0);
+  //delay(100);
+
+  temp_ticks = 9;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 30); //45
+  delay(300); //delay 300
+
+  a_move_lift(0);
+
+  temp_ticks = -18;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 85, 2000);
+  delay(50);
+
+  a_move_intake(80);
+
+  if (isRed) {
+    temp_ticks = 10.55; //11.25 //10
+    RF_ticks -= temp_ticks;
+    RR_ticks -= temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 85, 1900);
+  }
+  else {
+    temp_ticks = 10.55; //11.55 //11.25
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 85, 1900);
+  }
+
+  temp_ticks = 28.5; //temp_ticks = 21;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 2050); //45 speed
+
+  a_move_intake(0);
+
+  a_tare_position();
+
+  temp_ticks = -2.5; //-3
+  RF_ticks = temp_ticks;
+  RR_ticks = temp_ticks;
+  LF_ticks = temp_ticks;
+  LR_ticks = temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 127, 600);
+
+  a_move_intake(-127);
+  delay(150);
+  stackSixEight();
+
+  temp_ticks = -12;
+  RF_ticks = temp_ticks;
+  RR_ticks = temp_ticks;
+  LF_ticks = temp_ticks;
+  LR_ticks = temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 120, 600);
+
+  a_tare_position();
+
+  a_move_hinge(-127);
+  delay(1000);
+
+  a_move_lift(0);
+  a_move_hinge(0);
+  a_move_drive(0, 0);
+  a_move_intake(0);
 }
 
 
 void skills_towers(bool isRed) {
-  small_six(isRed);
+  //small_six(isRed);
+
+  a_tare_position();
   a_move_intake(127);
-  double temp_ticks = 6;
+
+  double temp_ticks = -0.5;
   double RF_ticks = 0;
   double LF_ticks = 0;
   double RR_ticks = 0;
   double LR_ticks = 0;
 
   RF_ticks += temp_ticks;
-  LF_ticks -= temp_ticks;
+  LF_ticks += temp_ticks;
   RR_ticks += temp_ticks;
-  LR_ticks -= temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 80);
+
+  delay(400);
+
+  a_tare_position();
 
   temp_ticks = 12;
+  RF_ticks -= temp_ticks;
+  RR_ticks -= temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 3200);
+
+  temp_ticks = 28;
   RF_ticks += temp_ticks;
   LF_ticks += temp_ticks;
   RR_ticks += temp_ticks;
   LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 80);
 
-  a_move_intake(-60);
-  delay(300);
+  delay(400);
 
   temp_ticks = -4;
   RF_ticks += temp_ticks;
   LF_ticks += temp_ticks;
   RR_ticks += temp_ticks;
   LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 80);
 
+    a_move_intake(-60);
+    delay(600);
+    a_move_intake(0);
+
+  a_move_hinge(127);
+  delay(300);
+  a_move_hinge(0);
   a_move_lift(127);
   delay(1000);
+
+  temp_ticks = 9.75;
+  RF_ticks += temp_ticks;
+    LF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 70);
+
+  delay(200);
+
   a_move_intake(-90);
+  delay(400);
+  a_move_intake(0);
+  /*
 
   temp_ticks = -10;
   RF_ticks += temp_ticks;
@@ -702,6 +960,7 @@ void skills_towers(bool isRed) {
   RR_ticks += temp_ticks;
   LR_ticks += temp_ticks;
   a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 80);
+  */
 }
 
 void skills_ten(bool isRed) {
@@ -786,36 +1045,222 @@ void skills_ten(bool isRed) {
 
 }
 
+void skills_double(bool isRed) {
+  a_set_drive_encoding(E_MOTOR_ENCODER_COUNTS);
+  a_tare_position();
+
+  unfold();
+
+  a_move_lift(-20);
+  a_move_intake(127);
+
+  double temp_ticks = 24;
+  double RF_ticks = 0;
+  double RR_ticks = 0;
+  double LF_ticks = 0;
+  double LR_ticks = 0;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+
+  temp_ticks = 8.75;
+  if (isRed) {
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+  }
+  else {
+    RR_ticks -= temp_ticks;
+    RF_ticks -= temp_ticks;
+  }
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+
+  temp_ticks = -23;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 2000);
+
+  temp_ticks = 9.625;
+  if (isRed) {
+    RR_ticks -= temp_ticks;
+    RF_ticks -= temp_ticks;
+  }
+  else {
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+  }
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1000);
+
+  temp_ticks = -3;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 127, 600);
+
+  a_tare_position();
+
+  temp_ticks = 28;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  a_move_hinge(0);
+  //delay(100);
+
+  temp_ticks = 9;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 30); //45
+  delay(300); //delay 300
+
+  temp_ticks = 2.5;
+
+  if (isRed) {
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  }
+  else {
+    RF_ticks -= temp_ticks;
+    RR_ticks -= temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75);
+  }
+
+  temp_ticks = 8;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 55, 1200); //speed 75
+  delay(600); //700
+
+  temp_ticks = -8;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 1200);
+
+  temp_ticks = -4;
+  if (isRed) {
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 4000);
+  }
+  else {
+    RF_ticks -= temp_ticks;
+    RR_ticks -= temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 4000);
+  }
+
+  a_move_lift(0);
+
+  temp_ticks = -18;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 85, 2000);
+  delay(50);
+
+  a_move_intake(80);
+
+  if (isRed) {
+    temp_ticks = 10.55; //11.25 //10
+    RF_ticks -= temp_ticks;
+    RR_ticks -= temp_ticks;
+    LF_ticks += temp_ticks;
+    LR_ticks += temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 85, 1900);
+  }
+  else {
+    temp_ticks = 10.55; //11.55 //11.25
+    RF_ticks += temp_ticks;
+    RR_ticks += temp_ticks;
+    LF_ticks -= temp_ticks;
+    LR_ticks -= temp_ticks;
+    a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 85, 1900);
+  }
+
+  temp_ticks = 28.5; //temp_ticks = 21;
+  RF_ticks += temp_ticks;
+  RR_ticks += temp_ticks;
+  LF_ticks += temp_ticks;
+  LR_ticks += temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 75, 2050); //45 speed
+
+  a_move_intake(0);
+
+  a_tare_position();
+
+  temp_ticks = -2.5; //-3
+  RF_ticks = temp_ticks;
+  RR_ticks = temp_ticks;
+  LF_ticks = temp_ticks;
+  LR_ticks = temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 127, 600);
+
+  a_move_intake(-127);
+  delay(150);
+  stackSixEight();
+
+  temp_ticks = -12;
+  RF_ticks = temp_ticks;
+  RR_ticks = temp_ticks;
+  LF_ticks = temp_ticks;
+  LR_ticks = temp_ticks;
+  a_move_absolute(RF_ticks, RR_ticks, LF_ticks, LR_ticks, 120, 600);
+
+  a_tare_position();
+
+  a_move_hinge(-127);
+  delay(1000);
+}
+
 
 
 void autonomous() {
-  redAlliance = true;
-  autonNumber = 2;
+  redAlliance = false;
+  autonNumber = 0;
   //1-small_six, 2-large_four, 3-skills
   start_ts = millis();
 
   switch (autonNumber) {
     case 0:
-      unfold();
+      small_seven(redAlliance);
+      break;
     case 1:
       small_six(redAlliance);
       break;
     case 2:
-      large_four(redAlliance);
+      large_three(redAlliance);
       break;
     case 3:
       skills_towers(redAlliance);
       break;
+    case 4:
+      skills_ten(redAlliance);
+      break;
     default:
-      unfold();
+      skills_double(redAlliance);
       break;
   }
 }
-
-
-//driving/strategy: defense, fast stacking, gathering purple
-//hardware: secure slider
-//software: autonomous, turn speed, buttons
 
 
 

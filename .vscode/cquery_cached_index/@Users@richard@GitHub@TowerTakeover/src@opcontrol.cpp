@@ -100,6 +100,7 @@ void opcontrol() {
 	// Even if it is not accurate, the driver can always manully move the hinge.
 	bool hinge_at_resting = true;
 	bool hinge_down = true;
+	bool hinge_midway = false;
 
 	left_drive.set_encoder_units(E_MOTOR_ENCODER_COUNTS);
 	left_rear_drive.set_encoder_units(E_MOTOR_ENCODER_COUNTS);
@@ -189,7 +190,9 @@ void opcontrol() {
 		if (master.get_digital(E_CONTROLLER_DIGITAL_L1) == 1) {
 			move_lift(-20);
 
-			move_intake(127); // Move the intake belt
+			move_intake(127);
+			hinge_down = true;
+			 // Move the intake belt
 			//while (master.get_digital(E_CONTROLLER_DIGITAL_L1) == 1) { // Wait for the button to be released
 			//	delay(10);
 			//}
@@ -229,6 +232,7 @@ void opcontrol() {
  			}
  			move_hinge(0);
 			hinge_at_resting = true;
+			hinge_down = true;
  		}
 
 		/*
@@ -249,7 +253,11 @@ void opcontrol() {
 			move_lift(20);
 			*/
 			move_hinge(127);
-			delay(900);
+			delay(800);
+			move_intake(-80);
+			move_hinge(127);
+			delay(100);
+			move_intake(127);
 			move_hinge(-127);
 			delay(700);
 			move_hinge(0);
@@ -259,21 +267,30 @@ void opcontrol() {
 		if (master.get_digital(E_CONTROLLER_DIGITAL_UP) == 1) {
 			if (hinge_down == true) {
 				move_hinge(127);
-				delay(500); // Richard: changed from 300 to 500
-				move_hinge(0);
+				delay(350);
+				move_hinge(10);
 				hinge_down = false;
+			}
+			else if (hinge_midway == true) {
+				move_hinge(127);
+				delay(250);
+				move_hinge(10);
+				hinge_down = false;
+				hinge_midway = false;
 			}
 			move_lift(127);
 			delay(1570);
 			move_lift(20);
+			move_hinge(0);
 		}
+
 
 		// For the middle and alliance towers
 		if (master.get_digital(E_CONTROLLER_DIGITAL_LEFT) == 1) {
 			if (hinge_down == true) {
 				move_hinge(127);
-				delay(500);	// Richard: changed from 300 to 500
-				move_hinge(0);
+				delay(350);
+				move_hinge(10);
 				hinge_down = false;
 			}
 			move_lift(127);
@@ -285,8 +302,8 @@ void opcontrol() {
 		if (master.get_digital(E_CONTROLLER_DIGITAL_RIGHT) == 1) {
 			if (hinge_down == true) {
 				move_hinge(127);
-				delay(500); // Richard: changed from 300 to 500
-				move_hinge(0);
+				delay(350);
+				move_hinge(10);
 				hinge_down = false;
 			}
 			move_lift(127);
@@ -302,6 +319,10 @@ void opcontrol() {
 			while (master.get_digital(E_CONTROLLER_DIGITAL_Y) == 1) {
 				delay(10);
 			}
+			move_hinge(-127);
+			delay(150);
+			move_hinge(0);
+			hinge_midway = true;
 			//move_hinge(-127);
 			//delay(250);	// Richard: commented out this line since it is not useful
 			move_lift(0);
@@ -364,7 +385,15 @@ void opcontrol() {
 		  delay(400);
 
 		  move_hinge(40);
-		  delay(1600);
+		  delay(1200);
+
+			move_intake(-127);
+			move_hinge(0);
+			delay(200);
+
+			move_intake(0);
+			move_drive(20, 20);
+			delay(460);
 
 			//move_hinge(20);	//Richard: commented out since these two lines are not necessary
 			//delay(1800);
